@@ -2,6 +2,11 @@
 
 import Discord, { Message } from 'discord.js';
 
+import type { Command } from './command/Command';
+import type { Client } from './client/client';
+import type { MarkdownFormatter } from './utils/MarkdownFormatter';
+import type { Response } from './command/responses/Response';
+
 export type Arguments<T> = [T] extends [(...args: infer U) => any]
   ? U
   : [T] extends [void] ? [] : [T];
@@ -31,14 +36,14 @@ export interface ClientOptions extends Discord.ClientOptions {
   prefix: string;
 }
 
-export interface CommandHandler<T> {
+export interface CommandHandler<T extends Context> {
   (context: T): any;
 }
 
-export interface CommandOptions<T extends any = any> {
+export interface CommandOptions<T extends Context = Context> {
   handler: CommandHandler<T>;
-  triggers: any;
-  parameters?: any;
+  triggers: string[];
+  parameters?: ParameterDefinition[];
   group?: string;
   description?: string;
   dependencies?: any;
@@ -122,4 +127,23 @@ export enum ServiceType {
 
 export interface PrefixFilterFunction {
   (message: Message): Promise<boolean | RegExp>;
+}
+
+export type DispatchFunction = (response: Response) => Promise<Message | null>;
+
+export interface Context {
+  command: Command;
+  commands: Client['commands'];
+  message: Message;
+  client: Client;
+  formatter: MarkdownFormatter;
+  services: Client['services'];
+  dispatch: DispatchFunction;
+  args: Record<string, any>;
+}
+
+export interface CreateContextOptions {
+  message: Message;
+  command: Command;
+  args?: any;
 }

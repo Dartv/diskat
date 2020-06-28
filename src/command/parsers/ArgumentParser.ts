@@ -11,7 +11,8 @@ export class ArgumentParser {
     const delimited = stringArgv(args);
     const parsed = {};
 
-    rules.forEach((rule, i) => {
+    for (let i = 0; i < rules.length; ++i) {
+      const rule = rules[i];
       const arg = delimited[i];
       if (!rule.optional && isNil(arg)) {
         throw new ArgumentParserError(`Missing a value for required argument: "${rule.name}"`);
@@ -46,7 +47,7 @@ export class ArgumentParser {
       parsed[rule.name] = isNil(arg)
         ? rule.defaultValue
         : ArgumentParser.normalizeArgumentType(rule.type as ParameterType, arg);
-    });
+    }
 
     return parsed;
   }

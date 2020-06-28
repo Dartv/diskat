@@ -1,22 +1,22 @@
-import { ParameterDefinition } from '../../types';
+import { ParameterDefinition, ParameterType } from '../../types';
 
 export class ParsedParameter {
-  name: ParameterDefinition['name'];
-  description: ParameterDefinition['description'];
-  optional: ParameterDefinition['optional'];
-  type: ParameterDefinition['type'];
-  repeatable: ParameterDefinition['repeatable'];
-  literal: ParameterDefinition['literal'];
-  defaultValue: ParameterDefinition['defaultValue'];
+  name: string;
+  description: string;
+  optional: boolean;
+  type: ParameterType;
+  repeatable: boolean;
+  literal: boolean;
+  defaultValue: any;
 
   constructor(options: ParameterDefinition) {
     const {
       name,
       description = '',
-      optional,
-      type,
-      repeatable,
-      literal,
+      optional = false,
+      type = ParameterType.STRING,
+      repeatable = false,
+      literal = false,
       defaultValue = null,
     } = options;
 

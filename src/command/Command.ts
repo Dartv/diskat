@@ -1,18 +1,20 @@
 import { Collection } from 'discord.js';
 
-import { CommandOptions, Middleware, CommandHandler } from '../types';
+import { CommandOptions, Middleware, CommandHandler, Context } from '../types';
 import { composeMiddleware } from '../utils/middleware';
 import { CommandGroup } from './CommandGroup';
+import { ParameterParser } from './parsers/ParameterParser';
+import { ParsedParameter } from './parsers/ParsedParameter';
 
 export class Command {
-  handler: CommandOptions['handler'];
-  originalHandler: CommandOptions['handler'];
+  handler: CommandHandler<any>;
+  originalHandler: CommandHandler<any>;
   name: string;
   aliases: string[];
-  parameters: CommandOptions['parameters'];
-  group: CommandOptions['group'];
-  description: CommandOptions['description'];
-  dependencies: CommandOptions['dependencies'];
+  parameters: ParsedParameter[];
+  group: string;
+  description: string;
+  dependencies: Collection<string, any>;
   middleware: Middleware[];
 
   constructor(options: CommandOptions) {
@@ -29,9 +31,10 @@ export class Command {
 
     this.name = name;
     this.aliases = aliases;
-    this.parameters = parameters;
     this.group = group;
     this.description = description;
+
+    this.parameters = ParameterParser.validate(...parameters);
 
     this.dependencies = Array.isArray(dependencies)
       ? new Collection(dependencies.map(serviceName => [serviceName, serviceName]))
@@ -48,7 +51,7 @@ export class Command {
     return composeMiddleware(...middleware, handler);
   }
 
-  handle(context: any): any {
+  handle(context: Context): any {
     return this.handler(context);
   }
 

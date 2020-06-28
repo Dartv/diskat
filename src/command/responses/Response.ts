@@ -1,4 +1,4 @@
-export class Response<T extends (...args: any[]) => any> {
+export class Response<T extends (...args: any[]) => any = (...args: any[]) => any> {
   executor: T;
 
   constructor(executor: T) {

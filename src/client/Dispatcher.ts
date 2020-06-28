@@ -1,7 +1,7 @@
 import { escapeRegExp, sample } from 'lodash';
 import { MessageEmbed, Message, TextChannel } from 'discord.js';
 
-import { ResponseType, PrefixFilterFunction } from '../types';
+import { ResponseType, PrefixFilterFunction, Context, CreateContextOptions } from '../types';
 import { Response } from '../command/responses/Response';
 import { Client } from './client';
 import { CommandParser } from '../command/parsers/CommandParser';
@@ -81,18 +81,6 @@ export class Dispatcher {
       });
     }
 
-    const context = {
-      message: contentMessage,
-      client: this.client,
-      commands: this.client.commands,
-      dispatch: <T extends (...args: any[]) => any>(response: Response<T>) => this.dispatchResponse(
-        contentMessage.channel as TextChannel,
-        response,
-      ),
-      formatter: MarkdownFormatter,
-      services: this.client.services,
-    };
-
     let args;
 
     try {
@@ -125,6 +113,8 @@ export class Dispatcher {
         },
         {},
       );
+
+      const context = this.createContext({ message: contentMessage, command, args });
 
       response = await command.handle({ ...context, ...injectedServices, args });
     } catch (error) {
@@ -206,6 +196,22 @@ export class Dispatcher {
     }
 
     throw new TypeError('Prefix should be a string or function');
+  }
+
+  createContext({ message, command, args = {} }: CreateContextOptions): Context {
+    return {
+      command,
+      message,
+      args,
+      client: this.client,
+      commands: this.client.commands,
+      dispatch: <T extends (...args: any[]) => any>(response: Response<T>) => this.dispatchResponse(
+        message.channel as TextChannel,
+        response,
+      ),
+      formatter: MarkdownFormatter,
+      services: this.client.services,
+    };
   }
 
   async dispatchResponse(channel: TextChannel, response: any): Promise<Message | null> {
