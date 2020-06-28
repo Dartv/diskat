@@ -1,25 +1,23 @@
 import { escapeRegExp, sample } from 'lodash';
 import { MessageEmbed, Message, TextChannel } from 'discord.js';
 
-import { ResponseType } from '../../types';
-import { RegexFilter } from './RegexFilter';
-import { DeferredFilter, DeferredFilterFunction } from './DeferredFilter';
-import { Response } from '../../command/responses/Response';
-import { Client } from '../client';
-import { CommandParser } from '../../command/parsers/CommandParser';
-import { ParsedCommand } from '../../command/parsers/ParsedCommand';
-import { ArgumentParser } from '../../command/parsers/ArgumentParser';
-import { MarkdownFormatter } from '../../utils/MarkdownFormatter';
+import { ResponseType, PrefixFilterFunction } from '../types';
+import { Response } from '../command/responses/Response';
+import { Client } from './client';
+import { CommandParser } from '../command/parsers/CommandParser';
+import { ParsedCommand } from '../command/parsers/ParsedCommand';
+import { ArgumentParser } from '../command/parsers/ArgumentParser';
+import { MarkdownFormatter } from '../utils/MarkdownFormatter';
 
 export interface DispatcherOptions {
   client: Client;
-  prefix: string | RegExp | DeferredFilterFunction;
+  prefix: string | RegExp | PrefixFilterFunction;
 }
 
 export class Dispatcher {
   client: DispatcherOptions['client'];
   prefix: DispatcherOptions['prefix'];
-  prefixFilter: RegexFilter | DeferredFilter;
+  prefixFilter: RegExp | PrefixFilterFunction;
 
   constructor({ client, prefix }: DispatcherOptions) {
     this.client = client;
@@ -58,9 +56,9 @@ export class Dispatcher {
     }
 
     const contentMessage = newMessage || message;
-    const prefix = this.prefixFilter instanceof DeferredFilter
-      ? await this.prefixFilter.test(contentMessage)
-      : this.prefixFilter.filter;
+    const prefix = typeof this.prefixFilter === 'function'
+      ? await this.prefixFilter(contentMessage)
+      : this.prefixFilter;
 
     if (!prefix || !(prefix instanceof RegExp) || this.shouldFilterPrefix(prefix, contentMessage)) {
       return this.client.emit('dispatchFail', 'prefixFilter', { message: contentMessage });
@@ -178,30 +176,33 @@ export class Dispatcher {
   }
 
   shouldFilterPrefix(prefix: RegExp, message: Message): boolean {
-    console.log(prefix, prefix.test(message.content), message.content);
     return !prefix.test(message.content);
   }
 
-  createPrefixFilter(prefix: Dispatcher['prefix']): RegexFilter | DeferredFilter {
+  createPrefixFilter(prefix: Dispatcher['prefix']): RegExp | PrefixFilterFunction {
     if (typeof prefix === 'string') {
       if (/^@client$/i.test(prefix)) {
-        return new RegexFilter(new RegExp(`^<@!?${this.client.user?.id}>`));
+        return new RegExp(`^<@!?${this.client.user?.id}>`);
       } else if (/^@me:.+/i.test(prefix)) {
         const prefixString = prefix.match(/@me:(.+)/)?.[1];
         const prefixRegex = new RegExp(`^${prefixString}`, 'i');
 
-        return new DeferredFilter(async ({ author }) => (
-          author.id === this.client.user?.id && prefixRegex
-        ));
+        return async ({ author }: Message) => {
+          if (author.id === this.client.user?.id) {
+            return prefixRegex;
+          }
+
+          return false;
+        };
       }
 
-      return new RegexFilter(new RegExp(`^${prefix}`, 'i'));
+      return new RegExp(`^${prefix}`, 'i');
     } else if (prefix instanceof RegExp) {
       const matches = prefix.toString().match(/^\/(.+)\/(\w+)?$/);
 
-      return new RegexFilter(new RegExp(`^${matches?.[1]}`, matches?.[2]));
+      return new RegExp(`^${matches?.[1]}`, matches?.[2]);
     } else if (typeof prefix === 'function') {
-      return new DeferredFilter(prefix);
+      return prefix;
     }
 
     throw new TypeError('Prefix should be a string or function');

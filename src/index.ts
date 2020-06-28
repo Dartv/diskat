@@ -1,9 +1,6 @@
 export * from './types';
 export { Client } from './client/client';
-export { DeferredFilter } from './client/dispatcher/DeferredFilter';
-export { Dispatcher, DispatcherOptions } from './client/dispatcher/Dispatcher';
-export { PrefixFilter } from './client/dispatcher/PrefixFilter';
-export { RegexFilter } from './client/dispatcher/RegexFilter';
+export { Dispatcher, DispatcherOptions } from './client/Dispatcher';
 export { ConstructedService } from './client/services/ConstructedService';
 export { InstanceService } from './client/services/InstanceService';
 export { Service } from './client/services/Service';

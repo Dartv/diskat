@@ -120,27 +120,6 @@ export enum ServiceType {
   INSTANCE = 'INSTANCE',
 }
 
-// export declare class Client extends DiscordClient {
-//   constructor(options: ClientOptions);
-// }
-
-// export type DeferredFilterFunction = (message: Message) => boolean;
-
-// export declare class Dispatcher {
-//   client: DispatcherOptions['client'];
-//   prefix: DispatcherOptions['prefix'];
-
-//   constructor(options: DispatcherOptions);
-// }
-
-// export declare class PrefixFilter<T> {
-//   filter: T;
-
-//   constructor(filter: T);
-
-//   test(message: Message): boolean;
-// }
-
-// export declare class RegexFilter extends PrefixFilter<RegExp> {}
-
-// export declare class DeferredFilter extends PrefixFilter<DeferredFilterFunction> {}
+export interface PrefixFilterFunction {
+  (message: Message): Promise<boolean | RegExp>;
+}
