@@ -7,7 +7,7 @@ import { isType, convertType } from './Types';
 import { ParameterType } from '../../types';
 
 export class ArgumentParser {
-  static parse(rules: ParsedParameter[], args: string) {
+  static parse(rules: ParsedParameter[], args: string): { [key in (typeof rules)[number]['name']]: any } {
     const delimited = stringArgv(args);
     const parsed = {};
 

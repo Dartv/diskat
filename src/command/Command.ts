@@ -1,14 +1,14 @@
 import { Collection } from 'discord.js';
 
-import { CommandOptions, Middleware, CommandHandler, Context } from '../types';
+import { CommandOptions, Middleware, CommandHandler, Context, CommandResponse } from '../types';
 import { composeMiddleware } from '../utils/middleware';
 import { CommandGroup } from './CommandGroup';
 import { ParameterParser } from './parsers/ParameterParser';
 import { ParsedParameter } from './parsers/ParsedParameter';
 
 export class Command {
-  handler: CommandHandler<any>;
-  originalHandler: CommandHandler<any>;
+  handler: CommandHandler;
+  originalHandler: CommandHandler;
   name: string;
   aliases: string[];
   parameters: ParsedParameter[];
@@ -47,11 +47,14 @@ export class Command {
     this.middleware = middleware;
   }
 
-  static generateHandler(handler: CommandHandler<any>, middleware: Middleware[]): ReturnType<typeof composeMiddleware> {
+  static generateHandler(
+    handler: CommandHandler,
+    middleware: Middleware[],
+  ): (context: Context) => Promise<CommandResponse> {
     return composeMiddleware(...middleware, handler);
   }
 
-  handle(context: Context): any {
+  async handle(context: Context): Promise<CommandResponse> {
     return this.handler(context);
   }
 

@@ -1,6 +1,6 @@
 /* eslint-disable no-var, @typescript-eslint/ban-types */
 
-import Discord, { Message } from 'discord.js';
+import Discord, { Message, MessageEmbed } from 'discord.js';
 
 import type { Command } from './command/Command';
 import type { Client } from './client/client';
@@ -36,12 +36,12 @@ export interface ClientOptions extends Discord.ClientOptions {
   prefix: string;
 }
 
-export interface CommandHandler<T extends Context> {
-  (context: T): any;
+export interface CommandHandler<T extends Context = Context, R extends CommandResponse = CommandResponse> {
+  (context: T): Promise<R>;
 }
 
-export interface CommandOptions<T extends Context = Context> {
-  handler: CommandHandler<T>;
+export interface CommandOptions {
+  handler: CommandHandler;
   triggers: string[];
   parameters?: ParameterDefinition[];
   group?: string;
@@ -95,28 +95,21 @@ export enum ResponseType {
   NO_RESPONSE = 'NO_RESPONSE',
 }
 
-type DispatchFailFilter =
-  | 'eventFilter'
-  | 'prefixFilter'
-  | 'parseCommand'
-  | 'unknownCommand'
-  | 'parseArguments'
-  | 'handlerError'
-  | 'middlewareFilter'
-  | 'dispatch';
+export type CommandResponse =
+  | string
+  | Response
+  | MessageEmbed
+  | (string | Response | MessageEmbed)[];
 
 export interface ClientEvents extends Discord.ClientEvents {
-  dispatchFail: [
-    DispatchFailFilter,
-    {
-      message: Message;
-      newMessage?: Message;
-      error?: Error;
-      command?: string;
-      args?: any;
-      response?: any;
-    },
-  ],
+  eventFilter: [Message, Message?],
+  prefixFilter: [Message],
+  middlewareFilter: [Context],
+  unknownCommand: [string, Message],
+  parseCommandError: [Error, Message],
+  parseArgumentsError: [Error, string, Message],
+  handlerError: [Error, Context],
+  dispatchError: [Error, Context],
 }
 
 export enum ServiceType {
@@ -129,7 +122,9 @@ export interface PrefixFilterFunction {
   (message: Message): Promise<boolean | RegExp>;
 }
 
-export type DispatchFunction = (response: Response) => Promise<Message | null>;
+export interface DispatchFunction {
+  (response: CommandResponse): Promise<Message | null>;
+}
 
 export interface Context {
   command: Command;
@@ -146,4 +141,17 @@ export interface CreateContextOptions {
   message: Message;
   command: Command;
   args?: any;
+}
+
+export type Prefix = string | RegExp | PrefixFilterFunction;
+
+export interface DispatcherOptions {
+  client: Client;
+  prefix: string | RegExp | PrefixFilterFunction;
+}
+
+export interface ServiceOptions {
+  aliases: string[];
+  builder?: any;
+  instance?: any;
 }

@@ -1,7 +1,15 @@
 import { escapeRegExp, sample } from 'lodash';
 import { MessageEmbed, Message, TextChannel } from 'discord.js';
 
-import { ResponseType, PrefixFilterFunction, Context, CreateContextOptions } from '../types';
+import {
+  ResponseType,
+  PrefixFilterFunction,
+  Context,
+  CreateContextOptions,
+  CommandResponse,
+  DispatcherOptions,
+  Prefix,
+} from '../types';
 import { Response } from '../command/responses/Response';
 import { Client } from './client';
 import { CommandParser } from '../command/parsers/CommandParser';
@@ -9,14 +17,9 @@ import { ParsedCommand } from '../command/parsers/ParsedCommand';
 import { ArgumentParser } from '../command/parsers/ArgumentParser';
 import { MarkdownFormatter } from '../utils/MarkdownFormatter';
 
-export interface DispatcherOptions {
-  client: Client;
-  prefix: string | RegExp | PrefixFilterFunction;
-}
-
 export class Dispatcher {
-  client: DispatcherOptions['client'];
-  prefix: DispatcherOptions['prefix'];
+  client: Client;
+  prefix: Prefix;
   prefixFilter: RegExp | PrefixFilterFunction;
 
   constructor({ client, prefix }: DispatcherOptions) {
@@ -50,54 +53,43 @@ export class Dispatcher {
     return null;
   }
 
-  async dispatch(message: Message, newMessage?: Message): Promise<boolean | this> {
-    if (this.shouldFilterEvent(message, newMessage)) {
-      return this.client.emit('dispatchFail', 'eventFilter', { message, newMessage });
+  async dispatch(prevMessage: Message, newMessage?: Message): Promise<boolean | this> {
+    if (this.shouldFilterEvent(prevMessage, newMessage)) {
+      this.client.emit('eventFilter', prevMessage, newMessage);
     }
 
-    const contentMessage = newMessage || message;
+    const message = newMessage || prevMessage;
     const prefix = typeof this.prefixFilter === 'function'
-      ? await this.prefixFilter(contentMessage)
+      ? await this.prefixFilter(message)
       : this.prefixFilter;
 
-    if (!prefix || !(prefix instanceof RegExp) || this.shouldFilterPrefix(prefix, contentMessage)) {
-      return this.client.emit('dispatchFail', 'prefixFilter', { message: contentMessage });
+    if (!prefix || !(prefix instanceof RegExp) || this.shouldFilterPrefix(prefix, message)) {
+      return this.client.emit('prefixFilter', message);
     }
 
     let parsedCommand: ParsedCommand;
 
     try {
-      parsedCommand = CommandParser.parse(contentMessage, prefix);
+      parsedCommand = CommandParser.parse(message, prefix);
     } catch (error) {
-      return this.client.emit('dispatchFail', 'parseCommand', { message: contentMessage, error });
+      return this.client.emit('parseCommandError', error, message);
     }
 
     const command = this.client.commands.get(parsedCommand.identifier);
 
     if (!command) {
-      return this.client.emit('dispatchFail', 'unknownCommand', {
-        message: contentMessage,
-        command: parsedCommand.identifier,
-      });
+      return this.client.emit('unknownCommand', parsedCommand.identifier, message);
     }
 
-    let args;
+    let args: Record<string, any>;
 
     try {
       args = ArgumentParser.parse(command.parameters, parsedCommand.rawArgs);
     } catch (error) {
-      return this.client.emit(
-        'dispatchFail',
-        'parseArguments',
-        {
-          message: contentMessage,
-          command: parsedCommand.identifier,
-          error,
-        },
-      );
+      return this.client.emit('parseArgumentsError', error, command.name, message);
     }
 
-    let response;
+    let response: CommandResponse;
 
     try {
       const injectedServices = [...command.dependencies].reduce(
@@ -114,49 +106,26 @@ export class Dispatcher {
         {},
       );
 
-      const context = this.createContext({ message: contentMessage, command, args });
+      const context = this.createContext({ message, command, args });
 
       response = await command.handle({ ...context, ...injectedServices, args });
     } catch (error) {
-      return this.client.emit(
-        'dispatchFail',
-        'handlerError',
-        {
-          message: contentMessage,
-          command: command.name,
-          args,
-          error,
-        },
-      );
+      return this.client.emit('handlerError', error, this.createContext({ message, command, args }));
     }
 
     if (!response) {
-      return this.client.emit(
-        'dispatchFail',
-        'middlewareFilter',
-        {
-          message: contentMessage,
-          command: command.name,
-          args,
-        },
-      );
+      return this.client.emit('middlewareFilter', this.createContext({ message, command, args }));
     }
 
     try {
-      await this.dispatchResponse(contentMessage.channel as TextChannel, response);
+      await this.dispatchResponse(message.channel as TextChannel, response);
 
       return this;
     } catch (error) {
       return this.client.emit(
-        'dispatchFail',
-        'dispatch',
-        {
-          message: contentMessage,
-          command: command.name,
-          args,
-          error,
-          response,
-        },
+        'dispatchError',
+        error,
+        this.createContext({ message, command, args }),
       );
     }
   }
@@ -169,7 +138,7 @@ export class Dispatcher {
     return !prefix.test(message.content);
   }
 
-  createPrefixFilter(prefix: Dispatcher['prefix']): RegExp | PrefixFilterFunction {
+  createPrefixFilter(prefix: Prefix): RegExp | PrefixFilterFunction {
     if (typeof prefix === 'string') {
       if (/^@client$/i.test(prefix)) {
         return new RegExp(`^<@!?${this.client.user?.id}>`);
@@ -205,7 +174,7 @@ export class Dispatcher {
       args,
       client: this.client,
       commands: this.client.commands,
-      dispatch: <T extends (...args: any[]) => any>(response: Response<T>) => this.dispatchResponse(
+      dispatch: (response: CommandResponse) => this.dispatchResponse(
         message.channel as TextChannel,
         response,
       ),
@@ -214,19 +183,19 @@ export class Dispatcher {
     };
   }
 
-  async dispatchResponse(channel: TextChannel, response: any): Promise<Message | null> {
+  async dispatchResponse(channel: TextChannel, response: CommandResponse): Promise<Message | null> {
     switch (Dispatcher.resolveResponseType(response)) {
       case ResponseType.STRING:
-        return channel.send(response as string);
+        return channel.send(response);
       case ResponseType.ARRAY: {
-        const choice = sample(response as string[]);
+        const choice = sample(response as CommandResponse[]);
 
-        return this.dispatchResponse(channel, choice);
+        return this.dispatchResponse(channel, choice as CommandResponse);
       }
       case ResponseType.EMBED:
-        return channel.send(response as MessageEmbed);
+        return channel.send(response);
       case ResponseType.CUSTOM_RESPONSE:
-        return (response as Response<any>).respond();
+        return (response as Response).respond();
       case ResponseType.NO_RESPONSE:
         return null;
       default:

@@ -1,6 +1,6 @@
 export * from './types';
 export { Client } from './client/client';
-export { Dispatcher, DispatcherOptions } from './client/Dispatcher';
+export { Dispatcher } from './client/Dispatcher';
 export { ConstructedService } from './client/services/ConstructedService';
 export { InstanceService } from './client/services/InstanceService';
 export { Service } from './client/services/Service';

@@ -1,8 +1,4 @@
-export interface ServiceOptions {
-  aliases: string[];
-  builder?: any;
-  instance?: any;
-}
+import { ServiceOptions } from '../../types';
 
 export abstract class Service {
   aliases: ServiceOptions['aliases'];
