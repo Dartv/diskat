@@ -75,6 +75,7 @@ export enum ParameterType {
   FLOAT = 'float',
   NUMBER = 'number',
   STRING = 'string',
+  DATE = 'date',
 }
 
 export interface ParameterDefinition {

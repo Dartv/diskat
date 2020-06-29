@@ -1,15 +1,21 @@
 import stringArgv from 'string-argv';
+import { Message } from 'discord.js';
 
 import { ParsedParameter } from './ParsedParameter';
 import { isNil } from '../../utils/common';
 import { ArgumentParserError } from '../../errors/ArgumentParserError';
-import { isType, convertType } from './Types';
-import { ParameterType } from '../../types';
+import type { Client } from '../../client/Client';
 
 export class ArgumentParser {
-  static parse(rules: ParsedParameter[], args: string): { [key in (typeof rules)[number]['name']]: any } {
+  constructor(public client: Client) {}
+
+  async parse(
+    rules: ParsedParameter[],
+    args: string,
+    message: Message,
+  ): Promise<Record<string, unknown>> {
     const delimited = stringArgv(args);
-    const parsed = {};
+    const parsed: Record<string, unknown> = {};
 
     for (let i = 0; i < rules.length; ++i) {
       const rule = rules[i];
@@ -25,10 +31,10 @@ export class ArgumentParser {
             [rule.name]: rule.defaultValue,
           };
         } else if (rule.repeatable) {
-          const rest: ReturnType<typeof ArgumentParser.normalizeArgumentType>[] = [];
-          // TODO: refactor to remove for loop
+          const rest: unknown[] = [];
+
           for (let j = i; j < delimited.length; ++j) {
-            rest.push(ArgumentParser.normalizeArgumentType(rule.type as ParameterType, delimited[j]));
+            rest.push(await this.client.types.resolve(rule.type, delimited[j], message));
           }
 
           return {
@@ -46,17 +52,9 @@ export class ArgumentParser {
       // get the arg or default value if no arg is given
       parsed[rule.name] = isNil(arg)
         ? rule.defaultValue
-        : ArgumentParser.normalizeArgumentType(rule.type as ParameterType, arg);
+        : await this.client.types.resolve(rule.type, arg, message);
     }
 
     return parsed;
-  }
-
-  static normalizeArgumentType(type: ParameterType, argument: string): ReturnType<typeof convertType> {
-    if (!isType(argument, type)) {
-      throw new ArgumentParserError(`Expected argument "${argument}" to be of type "${type}"`);
-    }
-
-    return convertType(argument, type);
   }
 }

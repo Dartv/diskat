@@ -17,7 +17,7 @@ export class CommandRegistry {
     this.groups = new Collection();
   }
 
-  add(...configurators: Array<(x: {}) => CommandOptions>): this {
+  add(...configurators: Array<(x: Record<string, unknown>) => CommandOptions>): this {
     configurators.map(configurator => configurator({})).forEach((commandOptions) => {
       this.addCommand(new Command(commandOptions));
     });

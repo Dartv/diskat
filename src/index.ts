@@ -16,6 +16,7 @@ export { ArgumentParserError } from './errors/ArgumentParserError';
 export { CommandError } from './errors/CommandError';
 export { CommandParserError } from './errors/CommandParserError';
 export { ParameterParserError } from './errors/ParameterParserError';
+export { TypeResolverError } from './errors/TypeResolverError';
 export * from './utils/common';
 export * from './utils/middleware';
 export { MarkdownFormatter } from './utils/MarkdownFormatter';

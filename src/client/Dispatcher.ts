@@ -37,7 +37,7 @@ export class Dispatcher {
     client.on('messageUpdate', this.dispatch.bind(this));
   }
 
-  static resolveResponseType(response: any): ResponseType | null {
+  static resolveResponseType(response: unknown): ResponseType | null {
     if (!response) {
       return ResponseType.NO_RESPONSE;
     } else if (typeof response === 'string') {
@@ -81,10 +81,10 @@ export class Dispatcher {
       return this.client.emit('unknownCommand', parsedCommand.identifier, message);
     }
 
-    let args: Record<string, any>;
+    let args: Record<string, unknown>;
 
     try {
-      args = ArgumentParser.parse(command.parameters, parsedCommand.rawArgs);
+      args = await new ArgumentParser(this.client).parse(command.parameters, parsedCommand.rawArgs, message);
     } catch (error) {
       return this.client.emit('parseArgumentsError', error, command.name, message);
     }
