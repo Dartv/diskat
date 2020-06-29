@@ -21,12 +21,12 @@ export function composeMiddleware<A, B, C, D, R>(
 ): (context: A) => R;
 export function composeMiddleware<R>(
   ...middlewares: Function[]
-): (context: any) => R;
-export function composeMiddleware(...middlewares: Function[]) {
+): (context: unknown) => R;
+export function composeMiddleware(...middlewares: Function[]): unknown {
   if (middlewares.length === 1) {
     return middlewares[0];
   }
 
-  return middlewares.reduceRight((composed, next) => (ctx: any) => next(composed, ctx));
+  return middlewares.reduceRight((composed, next) => (ctx: unknown) => next(composed, ctx));
 }
 

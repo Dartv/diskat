@@ -14,7 +14,7 @@ export class Command {
   parameters: ParsedParameter[];
   group: string;
   description: string;
-  dependencies: Collection<string, any>;
+  dependencies: Collection<string, string>;
   middleware: Middleware[];
 
   constructor(options: CommandOptions) {

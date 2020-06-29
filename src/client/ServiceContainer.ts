@@ -1,11 +1,11 @@
 import { Collection } from 'discord.js';
 
-interface ServiceInstance<T> {
+interface ServiceInstance<T extends unknown = unknown> {
   aliases: string[];
   instance: T;
 }
 
-export class ServiceContainer extends Collection<string, ServiceInstance<any>> {
+export class ServiceContainer extends Collection<string, ServiceInstance> {
   aliases: Collection<string, string> = new Collection;
 
   set<T>(identifier: string | string[], value: T): this {
@@ -45,14 +45,14 @@ export class ServiceContainer extends Collection<string, ServiceInstance<any>> {
     return this.aliases.has(identifier) || super.has(identifier);
   }
 
-  get<T>(identifier: string): ServiceInstance<T> | undefined {
+  get<T>(identifier: string): ServiceInstance<T>['instance'] | undefined {
     const mainBinding = this.getMainBinding(identifier);
 
     if (!mainBinding || !this.has(mainBinding)) {
       return undefined;
     }
 
-    return super.get(mainBinding)?.instance;
+    return super.get(mainBinding)?.instance as T;
   }
 
   getMainBinding(alias: string): string | undefined {

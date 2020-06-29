@@ -85,7 +85,7 @@ export interface ParameterDefinition {
   type?: ParameterType;
   repeatable?: boolean;
   literal?: boolean;
-  defaultValue?: any;
+  defaultValue?: unknown;
 }
 
 export enum ResponseType {
@@ -129,13 +129,13 @@ export interface Context {
   formatter: MarkdownFormatter;
   services: Client['services'];
   dispatch: DispatchFunction;
-  args: Record<string, any>;
+  args: Record<string, unknown>;
 }
 
 export interface CreateContextOptions {
   message: Message;
   command: Command;
-  args?: any;
+  args?: Record<string, unknown>;
 }
 
 export type Prefix = string | RegExp | PrefixFilterFunction;

@@ -1,11 +1,14 @@
-export class Response<T extends (...args: any[]) => any = (...args: any[]) => any> {
-  executor: T;
+export class Response<
+  T,
+  U extends (...args: unknown[]) => T = (...args: unknown[]) => T,
+> {
+  executor: U;
 
-  constructor(executor: T) {
+  constructor(executor: U) {
     this.executor = executor;
   }
 
-  respond(): ReturnType<T> {
+  respond(): T {
     return this.executor();
   }
 }
