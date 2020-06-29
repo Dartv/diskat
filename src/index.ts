@@ -12,6 +12,7 @@ export { ParsedCommand } from './command/parsers/ParsedCommand';
 export { ParsedParameter } from './command/parsers/ParsedParameter';
 export * from './command/parsers/Types';
 export { Response } from './command/responses/Response';
+export { DiskatError } from './errors/DiskatError';
 export { ArgumentParserError } from './errors/ArgumentParserError';
 export { CommandError } from './errors/CommandError';
 export { CommandParserError } from './errors/CommandParserError';
