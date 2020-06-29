@@ -2,7 +2,7 @@ import { Client as DiscordClient } from 'discord.js';
 
 import { ClientOptions, ClientEvents } from '../types';
 import { CommandRegistry } from '../command/CommandRegistry';
-import { ServiceContainer } from './services/ServiceContainer';
+import { ServiceContainer } from './ServiceContainer';
 import { Dispatcher } from './Dispatcher';
 
 export class Client extends DiscordClient {

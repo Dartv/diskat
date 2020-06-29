@@ -46,7 +46,7 @@ export interface CommandOptions {
   parameters?: ParameterDefinition[];
   group?: string;
   description?: string;
-  dependencies?: any;
+  dependencies?: string[];
   middleware?: Middleware[];
 }
 
@@ -112,12 +112,6 @@ export interface ClientEvents extends Discord.ClientEvents {
   dispatchError: [Error, Context],
 }
 
-export enum ServiceType {
-  CONSTRUCTED = 'CONSTRUCTED',
-  SINGLETON = 'SINGLETON',
-  INSTANCE = 'INSTANCE',
-}
-
 export interface PrefixFilterFunction {
   (message: Message): Promise<boolean | RegExp>;
 }
@@ -148,10 +142,4 @@ export type Prefix = string | RegExp | PrefixFilterFunction;
 export interface DispatcherOptions {
   client: Client;
   prefix: string | RegExp | PrefixFilterFunction;
-}
-
-export interface ServiceOptions {
-  aliases: string[];
-  builder?: any;
-  instance?: any;
 }

@@ -1,11 +1,7 @@
 export * from './types';
 export { Client } from './client/client';
 export { Dispatcher } from './client/Dispatcher';
-export { ConstructedService } from './client/services/ConstructedService';
-export { InstanceService } from './client/services/InstanceService';
-export { Service } from './client/services/Service';
-export { ServiceContainer } from './client/services/ServiceContainer';
-export { SingletonService } from './client/services/SingletonService';
+export { ServiceContainer } from './client/ServiceContainer';
 export { Command } from './command/Command';
 export { CommandGroup } from './command/CommandGroup';
 export { CommandRegistry } from './command/CommandRegistry';
