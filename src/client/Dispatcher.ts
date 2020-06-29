@@ -11,7 +11,7 @@ import {
   Prefix,
 } from '../types';
 import { Response } from '../command/responses/Response';
-import { Client } from './client';
+import { Client } from './Client';
 import { CommandParser } from '../command/parsers/CommandParser';
 import { ParsedCommand } from '../command/parsers/ParsedCommand';
 import { ArgumentParser } from '../command/parsers/ArgumentParser';

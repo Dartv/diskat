@@ -3,7 +3,7 @@
 import Discord, { Message, MessageEmbed } from 'discord.js';
 
 import type { Command } from './command/Command';
-import type { Client } from './client/client';
+import type { Client } from './client/Client';
 import type { MarkdownFormatter } from './utils/MarkdownFormatter';
 import type { Response } from './command/responses/Response';
 

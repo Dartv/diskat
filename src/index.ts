@@ -1,5 +1,5 @@
 export * from './types';
-export { Client } from './client/client';
+export { Client } from './client/Client';
 export { Dispatcher } from './client/Dispatcher';
 export { ServiceContainer } from './client/ServiceContainer';
 export { Command } from './command/Command';
