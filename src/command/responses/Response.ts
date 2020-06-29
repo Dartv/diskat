@@ -1,14 +1,11 @@
-export class Response<
-  T extends unknown = unknown,
-  U extends (...args: unknown[]) => T = (...args: unknown[]) => T,
-> {
-  executor: U;
+export class Response<T extends unknown = unknown> {
+  executor: () => Promise<T>;
 
-  constructor(executor: U) {
+  constructor(executor: Response<T>['executor']) {
     this.executor = executor;
   }
 
-  respond(): T {
+  respond(): Promise<T> {
     return this.executor();
   }
 }
