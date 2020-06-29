@@ -183,17 +183,17 @@ export class Dispatcher {
     };
   }
 
-  async dispatchResponse(channel: TextChannel, response: CommandResponse): Promise<Message | null> {
+  async dispatchResponse(channel: TextChannel, response: unknown): Promise<Message | null | unknown> {
     switch (Dispatcher.resolveResponseType(response)) {
       case ResponseType.STRING:
-        return channel.send(response);
+        return channel.send(response as string);
       case ResponseType.ARRAY: {
         const choice = sample(response as CommandResponse[]);
 
         return this.dispatchResponse(channel, choice as CommandResponse);
       }
       case ResponseType.EMBED:
-        return channel.send(response);
+        return channel.send(response as MessageEmbed);
       case ResponseType.CUSTOM_RESPONSE:
         return (response as Response).respond();
       case ResponseType.NO_RESPONSE:

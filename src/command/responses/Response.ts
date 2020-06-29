@@ -1,5 +1,5 @@
 export class Response<
-  T,
+  T extends unknown = unknown,
   U extends (...args: unknown[]) => T = (...args: unknown[]) => T,
 > {
   executor: U;

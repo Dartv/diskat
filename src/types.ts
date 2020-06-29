@@ -7,7 +7,7 @@ import type { Client } from './client/Client';
 import type { MarkdownFormatter } from './utils/MarkdownFormatter';
 import type { Response } from './command/responses/Response';
 
-export type Arguments<T> = [T] extends [(...args: infer U) => any]
+export type Arguments<T> = [T] extends [(...args: infer U) => unknown]
   ? U
   : [T] extends [void] ? [] : [T];
 
@@ -118,7 +118,7 @@ export interface PrefixFilterFunction {
 }
 
 export interface DispatchFunction {
-  (response: CommandResponse): Promise<Message | null>;
+  (response: CommandResponse): Promise<Message | null | unknown>;
 }
 
 export interface Context {
