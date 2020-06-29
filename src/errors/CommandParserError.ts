@@ -1,1 +1,3 @@
-export class CommandParserError extends Error {}
+import { DiskatError } from './DiskatError';
+
+export class CommandParserError extends DiskatError {}
