@@ -1,6 +1,6 @@
 import { Context, Middleware } from '../types';
 
-export const expectRoles = <T extends Context>(
+export const expectRole = <T extends Context>(
   config: string[] | ((context: T) => Promise<string[]>),
 ): Middleware<T> => async (next, context) => {
   const { message: { member } } = context;
