@@ -1,16 +1,18 @@
 import { Collection, Message } from 'discord.js';
 import { toNumber, toInteger } from 'lodash';
+import { URL } from 'url';
 
-import { ParameterType } from '../../types';
+import { ParameterType, TypeResolverFunction } from '../../types';
 import { TypeResolverError } from '../../errors/TypeResolverError';
-
-export interface TypeResolverFunction <T extends unknown = unknown> {
-  (value: string, message: Message): null | T | Promise<null | T>;
-}
+import type { Client } from '../../client/Client';
 
 export class TypeResolver extends Collection<ParameterType, TypeResolverFunction> {
-  constructor(entries?: ReadonlyArray<readonly [ParameterType, TypeResolverFunction]> | null) {
+  client: Client;
+
+  constructor(client: Client, entries?: ReadonlyArray<readonly [ParameterType, TypeResolverFunction]> | null) {
     super(entries);
+
+    this.client = client;
 
     this.addDefaultTypes();
   }
@@ -59,6 +61,51 @@ export class TypeResolver extends Collection<ParameterType, TypeResolverFunction
       [ParameterType.FLOAT]: (value) => TypeResolver.isNumber(value) ? TypeResolver.toFloat(value) : null,
       [ParameterType.BOOLEAN]: (value) => TypeResolver.isBoolean(value) ? TypeResolver.toBoolean(value) : null,
       [ParameterType.DATE]: (value) => TypeResolver.isDate(value) ? TypeResolver.toDate(value) : null,
+      [ParameterType.URL]: (value) => {
+        try {
+          return new URL(value);
+        } catch (err) {
+          return null;
+        }
+      },
+      [ParameterType.USER]: (value) => this.client.resolver.resolveUser(value) || null,
+      [ParameterType.MEMBER]: (value, message) => this.client.resolver.resolveMember(
+        value,
+        message.guild?.members.cache,
+      ) || null,
+      [ParameterType.CHANNEL]: (value, message) => this.client.resolver.resolveChannel(
+        value,
+        message.guild?.channels.cache,
+      ) || null,
+      [ParameterType.TEXT_CHANNEL]: (value, message) => this.client.resolver.resolveChannel(
+        value,
+        message.guild?.channels.cache,
+        { type: 'text' },
+      ) || null,
+      [ParameterType.VOICE_CHANNEL]: (value, message) => this.client.resolver.resolveChannel(
+        value,
+        message.guild?.channels.cache,
+        { type: 'voice' },
+      ) || null,
+      [ParameterType.CATEGORY_CHANNEL]: (value, message) => this.client.resolver.resolveChannel(
+        value,
+        message.guild?.channels.cache,
+        { type: 'category' },
+      ) || null,
+      [ParameterType.NEWS_CHANNEL]: (value, message) => this.client.resolver.resolveChannel(
+        value,
+        message.guild?.channels.cache,
+        { type: 'news' },
+      ) || null,
+      [ParameterType.STORE_CHANNEL]: (value, message) => this.client.resolver.resolveChannel(
+        value,
+        message.guild?.channels.cache,
+        { type: 'store' },
+      ) || null,
+      [ParameterType.ROLE]: (value, message) => this.client.resolver.resolveRole(
+        value,
+        message.guild?.roles.cache,
+      ) || null,
     };
 
     Object.entries(defaultTypes).forEach(([key, resolver]: [ParameterType, TypeResolverFunction]) => {

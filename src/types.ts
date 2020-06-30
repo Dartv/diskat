@@ -76,6 +76,16 @@ export enum ParameterType {
   NUMBER = 'number',
   STRING = 'string',
   DATE = 'date',
+  URL = 'url',
+  USER = 'user',
+  MEMBER = 'member',
+  CHANNEL = 'channel',
+  TEXT_CHANNEL = 'text channel',
+  VOICE_CHANNEL = 'voice channel',
+  CATEGORY_CHANNEL = 'category channel',
+  NEWS_CHANNEL = 'news channel',
+  STORE_CHANNEL = 'store channel',
+  ROLE = 'role',
 }
 
 export interface ParameterDefinition {
@@ -143,4 +153,8 @@ export type Prefix = string | RegExp | PrefixFilterFunction;
 export interface DispatcherOptions {
   client: Client;
   prefix: string | RegExp | PrefixFilterFunction;
+}
+
+export interface TypeResolverFunction <T extends unknown = unknown> {
+  (value: string, message: Message): null | T | Promise<null | T>;
 }
