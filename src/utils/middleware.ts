@@ -30,3 +30,25 @@ export function composeMiddleware(...middlewares: Function[]): unknown {
   return middlewares.reduceRight((composed, next) => (ctx: unknown) => next(composed, ctx));
 }
 
+export const combineMiddleware = <A, B, T extends Function[], R extends unknown>(
+  ...middleware: T
+) => (
+  next: (context: B) => R,
+  context: A,
+): R => composeMiddleware<R>(...middleware, next)(context);
+
+export const branch = <A, M1 extends Function, M2 extends Function, R extends unknown>(
+  predicate: (context: A) => boolean | Promise<boolean>,
+  middleware1: M1,
+  middleware2: M2,
+) => async (next: (context: A) => R, context: A): Promise<R> => {
+  if (await predicate(context)) {
+    return middleware1(context);
+  }
+
+  if (middleware2) {
+    return middleware2(context);
+  }
+
+  return next(context);
+};
