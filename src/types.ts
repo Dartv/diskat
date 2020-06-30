@@ -53,7 +53,9 @@ export interface CommandOptions {
   middleware?: Middleware[];
 }
 
-export type Middleware = <A, B, R>(next: (context: B) => R, context: A) => B | Promise<B>;
+export interface Middleware<A = unknown, B = unknown, R = unknown> {
+  (next: (context: B) => R, context: A): B | Promise<B>
+}
 
 export interface CommandGroupEvents {
   middlewareUpdate: (middlewares: Middleware[]) => void;
