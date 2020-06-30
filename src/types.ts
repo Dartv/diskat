@@ -61,7 +61,7 @@ export interface CommandGroupEvents {
   middlewareUpdate: (middlewares: Middleware[]) => void;
 }
 
-export interface ParsedCommandOptions {
+export interface ParsedCommand {
   // raw message content;
   raw: string;
   // raw message context with any command prefix trimmed from the start

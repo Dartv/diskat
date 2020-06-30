@@ -1,7 +1,7 @@
 import { Message } from 'discord.js';
 
 import { CommandParserError } from '../../errors/CommandParserError';
-import { ParsedCommand } from './ParsedCommand';
+import type { ParsedCommand } from '../../types';
 
 export class CommandParser {
   static parse(message: Message, prefix: string | RegExp): ParsedCommand {
@@ -14,12 +14,12 @@ export class CommandParser {
 
     const [identifier, ...args] = split;
 
-    return new ParsedCommand({
-      raw: message.content,
+    return {
       trimmed,
       identifier,
       args,
       rawArgs: args.join(' '),
-    });
+      raw: message.content,
+    };
   }
 }

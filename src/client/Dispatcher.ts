@@ -1,18 +1,18 @@
 import { escapeRegExp, sample } from 'lodash';
 import { MessageEmbed, Message, TextChannel } from 'discord.js';
 
-import {
+import type {
   PrefixFilterFunction,
   Context,
   CreateContextOptions,
   CommandResponse,
   DispatcherOptions,
   Prefix,
+  ParsedCommand,
 } from '../types';
 import { Response } from '../command/responses/Response';
 import { Client } from './Client';
 import { CommandParser } from '../command/parsers/CommandParser';
-import { ParsedCommand } from '../command/parsers/ParsedCommand';
 import { ArgumentParser } from '../command/parsers/ArgumentParser';
 import { MarkdownFormatter } from '../utils/MarkdownFormatter';
 
