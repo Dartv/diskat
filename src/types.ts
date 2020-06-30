@@ -36,8 +36,11 @@ export interface ClientOptions extends Discord.ClientOptions {
   prefix: string;
 }
 
-export interface CommandHandler<T extends Context = Context, R extends CommandResponse = CommandResponse> {
-  (context: T): Promise<R>;
+export interface CommandHandler<
+  T extends Context = Context,
+  U extends CommandResponse<unknown> = CommandResponse<unknown>
+> {
+  (context: T): Promise<U>;
 }
 
 export interface CommandOptions {
@@ -98,19 +101,12 @@ export interface ParameterDefinition {
   defaultValue?: unknown;
 }
 
-export enum ResponseType {
-  STRING = 'STRING',
-  ARRAY = 'ARRAY',
-  EMBED = 'EMBED',
-  CUSTOM_RESPONSE = 'CUSTOM_RESPONSE',
-  NO_RESPONSE = 'NO_RESPONSE',
-}
-
-export type CommandResponse =
+export type CommandResponse<T> =
   | string
-  | Response
+  | Response<T>
+  | Message
   | MessageEmbed
-  | (string | Response | MessageEmbed)[];
+  | [CommandResponse<T>, ...CommandResponse<T>[]];
 
 export interface ClientEvents extends Discord.ClientEvents {
   eventFilter: [Message, Message?],
@@ -127,10 +123,6 @@ export interface PrefixFilterFunction {
   (message: Message): Promise<boolean | RegExp>;
 }
 
-export interface DispatchFunction {
-  (response: CommandResponse): Promise<Message | null | unknown>;
-}
-
 export interface Context {
   command: Command;
   commands: Client['commands'];
@@ -138,7 +130,7 @@ export interface Context {
   client: Client;
   formatter: MarkdownFormatter;
   services: Client['services'];
-  dispatch: DispatchFunction;
+  dispatch: <T>(response: CommandResponse<T>) => Promise<Message | T>;
   args: Record<string, unknown>;
 }
 

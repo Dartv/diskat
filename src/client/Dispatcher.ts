@@ -2,7 +2,6 @@ import { escapeRegExp, sample } from 'lodash';
 import { MessageEmbed, Message, TextChannel } from 'discord.js';
 
 import {
-  ResponseType,
   PrefixFilterFunction,
   Context,
   CreateContextOptions,
@@ -35,22 +34,6 @@ export class Dispatcher {
     });
     client.on('message', this.dispatch.bind(this));
     client.on('messageUpdate', this.dispatch.bind(this));
-  }
-
-  static resolveResponseType(response: unknown): ResponseType | null {
-    if (!response) {
-      return ResponseType.NO_RESPONSE;
-    } else if (typeof response === 'string') {
-      return ResponseType.STRING;
-    } else if (Array.isArray(response)) {
-      return ResponseType.ARRAY;
-    } else if (response instanceof MessageEmbed) {
-      return ResponseType.EMBED;
-    } else if (response instanceof Response) {
-      return ResponseType.CUSTOM_RESPONSE;
-    }
-
-    return null;
   }
 
   async dispatch(prevMessage: Message, newMessage?: Message): Promise<boolean | this> {
@@ -91,7 +74,7 @@ export class Dispatcher {
       return this.client.emit('parseArgumentsError', error, command.name, message);
     }
 
-    let response: CommandResponse;
+    let response: CommandResponse<unknown>
 
     try {
       const injectedServices = [...command.dependencies].reduce(
@@ -178,7 +161,7 @@ export class Dispatcher {
       args,
       client: this.client,
       commands: this.client.commands,
-      dispatch: (response: CommandResponse) => this.dispatchResponse(
+      dispatch: <T>(response: CommandResponse<T>) => this.dispatchResponse(
         message.channel as TextChannel,
         response,
       ),
@@ -187,23 +170,30 @@ export class Dispatcher {
     };
   }
 
-  async dispatchResponse(channel: TextChannel, response: unknown): Promise<Message | null | unknown> {
-    switch (Dispatcher.resolveResponseType(response)) {
-      case ResponseType.STRING:
-        return channel.send(response as string);
-      case ResponseType.ARRAY: {
-        const choice = sample(response as CommandResponse[]);
-
-        return this.dispatchResponse(channel, choice as CommandResponse);
-      }
-      case ResponseType.EMBED:
-        return channel.send(response as MessageEmbed);
-      case ResponseType.CUSTOM_RESPONSE:
-        return (response as Response).respond();
-      case ResponseType.NO_RESPONSE:
-        return null;
-      default:
-        throw new Error('Returned value from command handler is not of a recognized type');
+  async dispatchResponse<T>(
+    channel: TextChannel,
+    response: CommandResponse<T>,
+  ): Promise<Message | T> {
+    if (typeof response === 'string') {
+      return channel.send(response);
     }
+
+    if (Array.isArray(response)) {
+      return this.dispatchResponse(channel, sample(response)!);
+    }
+
+    if (response instanceof MessageEmbed) {
+      return channel.send(response);
+    }
+
+    if (response instanceof Message) {
+      return response;
+    }
+
+    if (response instanceof Response) {
+      return response.respond();
+    }
+
+    throw new Error('Returned value from command handler is not of a recognized type');
   }
 }
