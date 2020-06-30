@@ -1,6 +1,6 @@
 import { GuildMember } from 'discord.js';
 
-import { Context, Middleware } from '../types';
+import type { Context, Middleware } from '../types';
 
 export const expectRole = <T extends Context>(
   config: string[] | ((context: T) => Promise<{ roles: string[]; member?: GuildMember }>),

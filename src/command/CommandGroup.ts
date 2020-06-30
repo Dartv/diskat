@@ -1,8 +1,8 @@
 import { EventEmitter } from 'events';
 import { Collection } from 'discord.js';
 
-import { Command } from './Command';
-import { Middleware, TypedEventEmitter, CommandGroupEvents } from '../types';
+import type { Command } from './Command';
+import type { Middleware, TypedEventEmitter, CommandGroupEvents } from '../types';
 
 export class CommandGroup extends (EventEmitter as new () => TypedEventEmitter<CommandGroupEvents>) {
   name: string;

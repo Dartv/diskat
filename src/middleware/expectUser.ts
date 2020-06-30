@@ -1,6 +1,6 @@
 import { User } from 'discord.js';
 
-import { Middleware, Context } from '../types';
+import type { Middleware, Context } from '../types';
 
 export const expectUser = <T extends Context>(
   config: string[] | ((context: T) => Promise<{ identifiers: string[]; user?: User }>)

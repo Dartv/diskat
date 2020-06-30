@@ -1,6 +1,6 @@
 import { PermissionString, GuildMember } from 'discord.js';
 
-import { Middleware, Context } from '../types';
+import type { Middleware, Context } from '../types';
 
 export const expectPermissions = <T extends Context>(
   config: PermissionString[] | ((context: T) => Promise<{ permissions: PermissionString[], member?: GuildMember }>)

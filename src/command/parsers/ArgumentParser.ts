@@ -1,10 +1,10 @@
 import stringArgv from 'string-argv';
 import { Message } from 'discord.js';
 
-import { isNil } from '../../utils/common';
-import { ArgumentParserError } from '../../errors/ArgumentParserError';
 import type { Client } from '../../client/Client';
 import type { ParsedParameter } from '../../types';
+import { ArgumentParserError } from '../../errors/ArgumentParserError';
+import { isNil } from '../../utils/common';
 
 export class ArgumentParser {
   constructor(public client: Client) {}

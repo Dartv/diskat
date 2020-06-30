@@ -2,9 +2,10 @@ import { Collection, Message } from 'discord.js';
 import { toNumber, toInteger } from 'lodash';
 import { URL } from 'url';
 
-import { ParameterType, TypeResolverFunction } from '../../types';
-import { TypeResolverError } from '../../errors/TypeResolverError';
+import type { TypeResolverFunction } from '../../types';
 import type { Client } from '../../client/Client';
+import { ParameterType } from '../../types';
+import { TypeResolverError } from '../../errors/TypeResolverError';
 
 export class TypeResolver extends Collection<ParameterType, TypeResolverFunction> {
   client: Client;

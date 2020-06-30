@@ -1,10 +1,9 @@
 import { Collection } from 'discord.js';
 
+import type { Middleware, CommandOptions } from '../types';
 import { Command } from './Command';
 import { CommandError } from '../errors/CommandError';
 import { CommandGroup } from './CommandGroup';
-import { Middleware, CommandOptions } from '../types';
-
 
 export class CommandRegistry {
   commands: Collection<string, Command>;

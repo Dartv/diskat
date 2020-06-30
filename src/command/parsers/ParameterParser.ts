@@ -1,6 +1,7 @@
 import { isPlainObject } from 'lodash';
 
-import { ParameterDefinition, ParsedParameter, ParameterType } from '../../types';
+import type { ParameterDefinition, ParsedParameter } from '../../types';
+import { ParameterType } from '../../types';
 import { ParameterParserError } from '../../errors/ParameterParserError';
 
 export class ParameterParser {

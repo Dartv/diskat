@@ -1,7 +1,7 @@
 import { Message } from 'discord.js';
 
-import { CommandParserError } from '../../errors/CommandParserError';
 import type { ParsedCommand } from '../../types';
+import { CommandParserError } from '../../errors/CommandParserError';
 
 export class CommandParser {
   static parse(message: Message, prefix: string | RegExp): ParsedCommand {

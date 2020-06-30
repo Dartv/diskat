@@ -1,6 +1,6 @@
 import { Client as DiscordClient } from 'discord.js';
 
-import { ClientOptions, ClientEvents } from '../types';
+import type { ClientOptions, ClientEvents } from '../types';
 import { CommandRegistry } from '../command/CommandRegistry';
 import { ServiceContainer } from './ServiceContainer';
 import { Dispatcher } from './Dispatcher';

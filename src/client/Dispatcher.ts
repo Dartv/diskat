@@ -10,8 +10,8 @@ import type {
   Prefix,
   ParsedCommand,
 } from '../types';
+import type { Client } from './Client';
 import { Response } from '../command/responses/Response';
-import { Client } from './Client';
 import { CommandParser } from '../command/parsers/CommandParser';
 import { ArgumentParser } from '../command/parsers/ArgumentParser';
 import { MarkdownFormatter } from '../utils/MarkdownFormatter';
