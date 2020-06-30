@@ -116,8 +116,8 @@ export class TypeResolver extends Collection<ParameterType, TypeResolverFunction
     return this;
   }
 
-  async resolve<T>(type: ParameterType, value: string, message: Message): Promise<T> {
-    const resolver = this.get(type);
+  async resolve<T>(type: ParameterType | TypeResolverFunction<T>, value: string, message: Message): Promise<T> {
+    const resolver = typeof type === 'function' ? type : this.get(type);
 
     if (!resolver) {
       throw new TypeResolverError(`Type ${type} doesn't exist`);
