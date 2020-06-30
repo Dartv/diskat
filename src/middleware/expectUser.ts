@@ -1,21 +1,21 @@
+import { User } from 'discord.js';
+
 import { Middleware, Context } from '../types';
 
 export const expectUser = <T extends Context>(
-  config: string[] | ((context: T) => Promise<string[]>)
+  config: string[] | ((context: T) => Promise<{ identifiers: string[]; user?: User }>)
 ): Middleware<T> => async (next, context) => {
   const {
-    message: {
-      author: {
-        id,
-        username,
-        discriminator,
-      },
-    },
-  } = context;
+    identifiers,
+    user = context.message.author,
+  } = typeof config === 'function' ? await config(context) : { identifiers: config };
 
-  const identifiers = new Set(
-    typeof config === 'function' ? await config(context) : config
-  );
+  if (!user) {
+    return next(context);
+  }
 
-  return identifiers.has(id) || identifiers.has(`${username}#${discriminator}`) && next(context);
+  const ids = new Set(identifiers);
+  const { id, username, discriminator } = user;
+
+  return ids.has(id) || ids.has(`${username}#${discriminator}`) && next(context);
 };

@@ -1,16 +1,19 @@
-import { PermissionString } from 'discord.js';
+import { PermissionString, GuildMember } from 'discord.js';
+
 import { Middleware, Context } from '../types';
 
 export const expectPermissions = <T extends Context>(
-  config: PermissionString[] | ((context: T) => Promise<PermissionString[]>)
+  config: PermissionString[] | ((context: T) => Promise<{ permissions: PermissionString[], member?: GuildMember }>)
 ): Middleware<T> => async (next, context) => {
-  const { message: { member } } = context;
+  const {
+    permissions,
+    member = context.message.member,
+  } = typeof config === 'function' ? await config(context) : { permissions: config };
 
   if (!member) {
     return next(context);
   }
 
-  const permissions = typeof config === 'function' ? await config(context) : config;
   const ok = permissions.every((permission) => member.hasPermission(permission));
 
   return ok && next(context);
