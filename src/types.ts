@@ -93,17 +93,17 @@ export enum ParameterType {
   ROLE = 'role',
 }
 
-export interface ParameterDefinition {
+export interface ParameterDefinition<T = unknown> {
   name: string;
   description?: string;
   optional?: boolean;
   type?: ParameterType;
   repeatable?: boolean;
   literal?: boolean;
-  defaultValue?: unknown;
+  defaultValue?: T | ((message: Message) => T | Promise<T>);
 }
 
-export type ParsedParameter = Required<ParameterDefinition>;
+export type ParsedParameter<T = unknown> = Required<ParameterDefinition<T>>;
 
 export type CommandResponse<T> =
   | string

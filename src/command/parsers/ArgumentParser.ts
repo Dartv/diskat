@@ -28,7 +28,7 @@ export class ArgumentParser {
         if (isNil(arg)) {
           return {
             ...parsed,
-            [rule.name]: rule.defaultValue,
+            [rule.name]: await ArgumentParser.resolveDefaultValue(rule, message),
           };
         } else if (rule.repeatable) {
           const rest: unknown[] = [];
@@ -51,10 +51,14 @@ export class ArgumentParser {
 
       // get the arg or default value if no arg is given
       parsed[rule.name] = isNil(arg)
-        ? rule.defaultValue
+        ? await ArgumentParser.resolveDefaultValue(rule, message)
         : await this.client.types.resolve(rule.type, arg, message);
     }
 
     return parsed;
+  }
+
+  static resolveDefaultValue<T>(rule: ParsedParameter, message: Message): T {
+    return typeof rule.defaultValue === 'function' ? rule.defaultValue(message) : rule.defaultValue;
   }
 }
