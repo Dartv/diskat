@@ -54,7 +54,7 @@ export class TypeResolver extends Collection<ParameterType, TypeResolverFunction
     return new Date(Date.parse(value));
   }
 
-  static anyOf(types: (ParameterType | TypeResolverFunction)[]): TypeResolverFunction {
+  static oneOfType(types: (ParameterType | TypeResolverFunction)[]): TypeResolverFunction {
     return async function (this: TypeResolver, value, message) {
       return types.reduce(async (accumP, type, i) => {
         const accum = await accumP;
@@ -73,6 +73,42 @@ export class TypeResolver extends Collection<ParameterType, TypeResolverFunction
           return accum;
         }
       }, Promise.resolve(null));
+    }
+  }
+
+  static oneOf<T>(type: ParameterType | TypeResolverFunction<T>, expected: T[]): TypeResolverFunction<T> {
+    return async function (this: TypeResolver, value, message) {
+      const resolved = await this.resolve(type, value, message);
+
+      if (!expected.includes(resolved)) {
+        throw new TypeResolverError(`Expected "${value}" to match "${expected.join(' | ').trim()}" of type "${type}"`);
+      }
+
+      return resolved;
+    }
+  }
+
+  static validate<T>(
+    predicate: (this: TypeResolver, resolved: T, value: string, message: Message) => boolean | Promise<boolean>,
+    type: ParameterType | TypeResolverFunction<T> = ParameterType.STRING,
+  ): TypeResolverFunction<T> {
+    return async function (this: TypeResolver, value, message) {
+      const resolved = await this.resolve(type, value, message);
+
+      if (!await predicate.call(this, resolved, value, message)) {
+        throw new TypeResolverError(`Value "${value}" of type "${type}" failed validation`);
+      }
+
+      return resolved;
+    }
+  }
+
+  static compose(...types: (ParameterType | TypeResolverFunction)[]): TypeResolverFunction {
+    return async function (this: TypeResolver, value, message) {
+      return types.reduce(
+        async (acc, type) => acc.then((resolved) => this.resolve(type, resolved, message)),
+        Promise.resolve(value),
+      );
     }
   }
 
