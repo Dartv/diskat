@@ -50,11 +50,11 @@ export class Command {
   static generateHandler(
     handler: CommandHandler,
     middleware: Middleware[],
-  ): (context: Context) => Promise<CommandResponse> {
+  ): (context: Context) => Promise<CommandResponse<unknown>> {
     return composeMiddleware(...middleware, handler);
   }
 
-  async handle(context: Context): Promise<CommandResponse> {
+  async handle(context: Context): Promise<CommandResponse<unknown>> {
     return this.handler(context);
   }
 
