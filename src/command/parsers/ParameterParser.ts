@@ -1,7 +1,6 @@
 import { isPlainObject } from 'lodash';
 
-import { ParsedParameter } from './ParsedParameter';
-import { ParameterDefinition } from '../../types';
+import { ParameterDefinition, ParsedParameter, ParameterType } from '../../types';
 import { ParameterParserError } from '../../errors/ParameterParserError';
 
 export class ParameterParser {
@@ -29,10 +28,32 @@ export class ParameterParser {
   static parse(...parameters: ParameterDefinition[]): ParsedParameter[] {
     return parameters.map((parameter) => {
       if (isPlainObject(parameter)) {
-        return new ParsedParameter(parameter);
+        return ParameterParser.applyDefaults(parameter);
       }
 
       throw new ParameterParserError('Expected parameter definition to be a plain object');
     });
+  }
+
+  static applyDefaults(parameter: ParameterDefinition): ParsedParameter {
+    const {
+      name,
+      description = '',
+      optional = false,
+      type = ParameterType.STRING,
+      repeatable = false,
+      literal = false,
+      defaultValue = null,
+    } = parameter;
+
+    return {
+      name,
+      description,
+      optional,
+      type,
+      repeatable,
+      literal,
+      defaultValue,
+    };
   }
 }

@@ -1,10 +1,16 @@
 import { Collection } from 'discord.js';
 
-import { CommandOptions, Middleware, CommandHandler, Context, CommandResponse } from '../types';
+import {
+  CommandOptions,
+  Middleware,
+  CommandHandler,
+  Context,
+  CommandResponse,
+  ParsedParameter,
+} from '../types';
 import { composeMiddleware } from '../utils/middleware';
 import { CommandGroup } from './CommandGroup';
 import { ParameterParser } from './parsers/ParameterParser';
-import { ParsedParameter } from './parsers/ParsedParameter';
 
 export class Command {
   handler: CommandHandler;

@@ -9,7 +9,6 @@ export { ArgumentParser } from './command/parsers/ArgumentParser';
 export { CommandParser } from './command/parsers/CommandParser';
 export { ParameterParser } from './command/parsers/ParameterParser';
 export { ParsedCommand } from './command/parsers/ParsedCommand';
-export { ParsedParameter } from './command/parsers/ParsedParameter';
 export { Response } from './command/responses/Response';
 export { DiskatError } from './errors/DiskatError';
 export { ArgumentParserError } from './errors/ArgumentParserError';

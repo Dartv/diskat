@@ -103,6 +103,8 @@ export interface ParameterDefinition {
   defaultValue?: unknown;
 }
 
+export type ParsedParameter = Required<ParameterDefinition>;
+
 export type CommandResponse<T> =
   | string
   | Response<T>
