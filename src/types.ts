@@ -38,7 +38,7 @@ export interface ClientOptions extends Discord.ClientOptions {
 
 export interface CommandHandler<
   T extends Context = Context,
-  U extends CommandResponse<unknown> = CommandResponse<unknown>
+  U = CommandResponse<unknown>
 > {
   (context: T): Promise<U>;
 }
