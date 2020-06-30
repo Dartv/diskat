@@ -25,3 +25,5 @@ export { expectGuild } from './middleware/expectGuild';
 export { expectPermissions } from './middleware/expectPermissions';
 export { expectRole } from './middleware/expectRole';
 export { expectUser } from './middleware/expectUser';
+export { ClientResolver } from './command/resolvers/ClientResolver';
+export { TypeResolver } from './command/resolvers/TypeResolver';

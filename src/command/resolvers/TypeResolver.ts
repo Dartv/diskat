@@ -54,6 +54,28 @@ export class TypeResolver extends Collection<ParameterType, TypeResolverFunction
     return new Date(Date.parse(value));
   }
 
+  static anyOf(types: (ParameterType | TypeResolverFunction)[]): TypeResolverFunction {
+    return async function (this: TypeResolver, value, message) {
+      return types.reduce(async (accumP, type, i) => {
+        const accum = await accumP;
+
+        if (accum !== null) return accum;
+
+        try {
+          const resolved = await this.resolve(type, value, message);
+
+          return resolved;
+        } catch (err) {
+          if (i === types.length - 1) {
+            throw err;
+          }
+
+          return accum;
+        }
+      }, Promise.resolve(null));
+    }
+  }
+
   addDefaultTypes(): this {
     const defaultTypes: Record<ParameterType, TypeResolverFunction> = {
       [ParameterType.STRING]: (value) => TypeResolver.isString(value) ? value : null,
@@ -117,7 +139,7 @@ export class TypeResolver extends Collection<ParameterType, TypeResolverFunction
   }
 
   async resolve<T>(type: ParameterType | TypeResolverFunction<T>, value: string, message: Message): Promise<T> {
-    const resolver = typeof type === 'function' ? type : this.get(type);
+    const resolver = typeof type === 'function' ? type.bind(this) : this.get(type);
 
     if (!resolver) {
       throw new TypeResolverError(`Type ${type} doesn't exist`);
