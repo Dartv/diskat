@@ -97,7 +97,7 @@ export interface ParameterDefinition<T = unknown> {
   name: string;
   description?: string;
   optional?: boolean;
-  type?: ParameterType | TypeResolverFunction;
+  type?: string | TypeResolverFunction;
   repeatable?: boolean;
   literal?: boolean;
   defaultValue?: T | ((message: Message) => T | Promise<T>);

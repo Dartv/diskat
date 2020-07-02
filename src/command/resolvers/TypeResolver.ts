@@ -7,10 +7,10 @@ import type { Client } from '../../client/Client';
 import { ParameterType } from '../../types';
 import { TypeResolverError } from '../../errors/TypeResolverError';
 
-export class TypeResolver extends Collection<ParameterType, TypeResolverFunction> {
+export class TypeResolver extends Collection<string, TypeResolverFunction> {
   client: Client;
 
-  constructor(client: Client, entries?: ReadonlyArray<readonly [ParameterType, TypeResolverFunction]> | null) {
+  constructor(client: Client, entries?: ReadonlyArray<readonly [string, TypeResolverFunction]> | null) {
     super(entries);
 
     this.client = client;
@@ -54,7 +54,7 @@ export class TypeResolver extends Collection<ParameterType, TypeResolverFunction
     return new Date(Date.parse(value));
   }
 
-  static oneOfType(types: (ParameterType | TypeResolverFunction)[]): TypeResolverFunction {
+  static oneOfType(types: (string | TypeResolverFunction)[]): TypeResolverFunction {
     return async function (this: TypeResolver, value, message) {
       return types.reduce(async (accumP, type, i) => {
         const accum = await accumP;
@@ -76,7 +76,7 @@ export class TypeResolver extends Collection<ParameterType, TypeResolverFunction
     }
   }
 
-  static oneOf<T>(type: ParameterType | TypeResolverFunction<T>, expected: T[]): TypeResolverFunction<T> {
+  static oneOf<T>(type: string | TypeResolverFunction<T>, expected: T[]): TypeResolverFunction<T> {
     return async function (this: TypeResolver, value, message) {
       const resolved = await this.resolve(type, value, message);
 
@@ -90,7 +90,7 @@ export class TypeResolver extends Collection<ParameterType, TypeResolverFunction
 
   static validate<T>(
     predicate: (this: TypeResolver, resolved: T, value: string, message: Message) => boolean | Promise<boolean>,
-    type: ParameterType | TypeResolverFunction<T> = ParameterType.STRING,
+    type: string | TypeResolverFunction<T> = ParameterType.STRING,
   ): TypeResolverFunction<T> {
     return async function (this: TypeResolver, value, message) {
       const resolved = await this.resolve(type, value, message);
@@ -103,7 +103,7 @@ export class TypeResolver extends Collection<ParameterType, TypeResolverFunction
     }
   }
 
-  static compose(...types: (ParameterType | TypeResolverFunction)[]): TypeResolverFunction {
+  static compose(...types: (string | TypeResolverFunction)[]): TypeResolverFunction {
     return async function (this: TypeResolver, value, message) {
       return types.reduce(
         async (acc, type) => acc.then((resolved) => this.resolve(type, resolved, message)),
@@ -174,7 +174,11 @@ export class TypeResolver extends Collection<ParameterType, TypeResolverFunction
     return this;
   }
 
-  async resolve<T>(type: ParameterType | TypeResolverFunction<T>, value: string, message: Message): Promise<T> {
+  async resolve<T>(
+    type: string | TypeResolverFunction<T>,
+    value: string,
+    message: Message,
+  ): Promise<T> {
     const resolver = typeof type === 'function' ? type.bind(this) : this.get(type);
 
     if (!resolver) {
