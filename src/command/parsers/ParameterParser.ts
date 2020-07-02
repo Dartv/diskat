@@ -45,6 +45,7 @@ export class ParameterParser {
       repeatable = false,
       literal = false,
       defaultValue = null,
+      meta = {},
     } = parameter;
 
     return {
@@ -55,6 +56,7 @@ export class ParameterParser {
       repeatable,
       literal,
       defaultValue,
+      meta,
     };
   }
 }

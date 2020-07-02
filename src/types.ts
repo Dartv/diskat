@@ -51,7 +51,7 @@ export interface CommandOptions {
   description?: string;
   dependencies?: string[];
   middleware?: Middleware[];
-  meta: Record<string, unknown>;
+  meta?: Record<string, unknown>;
 }
 
 export interface Middleware<A extends Context = Context, B extends Context = Context, R = unknown> {
