@@ -55,7 +55,6 @@ export class Dispatcher {
     try {
       parsedCommand = CommandParser.parse(message, prefix);
     } catch (error) {
-      this.client.emit('error', error);
       return this.client.emit('parseCommandError', error, message);
     }
 
@@ -179,8 +178,10 @@ export class Dispatcher {
       return this.dispatchResponse(channel, sample(response)!);
     }
 
-    if (response instanceof MessageEmbed) {
-      return channel.send(response);
+    // for god knows why reason MessageEmbed loses its reference
+    // so this is a dirty hack around that lol
+    if (response?.constructor?.name === MessageEmbed.name) {
+      return channel.send('', { embed: response as MessageEmbed });
     }
 
     if (response instanceof Message) {
