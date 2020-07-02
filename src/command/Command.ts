@@ -22,6 +22,7 @@ export class Command {
   description: string;
   dependencies: Collection<string, string>;
   middleware: Middleware[];
+  meta: Record<string, unknown>;
 
   constructor(options: CommandOptions) {
     const {
@@ -32,6 +33,7 @@ export class Command {
       group = '',
       description = '',
       middleware = [],
+      meta = {},
     } = options;
     const [name, ...aliases] = triggers;
 
@@ -46,11 +48,10 @@ export class Command {
       ? new Collection(dependencies.map(serviceName => [serviceName, serviceName]))
       : new Collection(Object.entries(dependencies));
 
-    this.handler = Command.generateHandler(handler, middleware);
-
     this.originalHandler = handler;
-
     this.middleware = middleware;
+    this.meta = meta;
+    this.handler = Command.generateHandler(handler, middleware);
   }
 
   static generateHandler(
