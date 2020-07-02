@@ -131,7 +131,7 @@ export interface Context {
   commands: Client['commands'];
   message: Message;
   client: Client;
-  formatter: MarkdownFormatter;
+  formatter: typeof MarkdownFormatter;
   services: Client['services'];
   dispatch: <T>(response: CommandResponse<T>) => Promise<Message | T>;
   args: Record<string, unknown>;
