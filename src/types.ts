@@ -119,7 +119,6 @@ export interface ClientEvents extends Discord.ClientEvents {
   unknownCommand: [string, Message],
   parseCommandError: [Error, Message],
   parseArgumentsError: [Error, string, Message],
-  handlerError: [Error, Context],
   dispatchError: [Error, Context],
 }
 

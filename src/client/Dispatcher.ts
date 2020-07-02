@@ -70,7 +70,6 @@ export class Dispatcher {
     try {
       args = await new ArgumentParser(this.client).parse(command.parameters, parsedCommand.rawArgs, message);
     } catch (error) {
-      this.client.emit('error', error);
       return this.client.emit('parseArgumentsError', error, command.name, message);
     }
 
@@ -95,8 +94,7 @@ export class Dispatcher {
 
       response = await command.handle({ ...context, ...injectedServices, args });
     } catch (error) {
-      this.client.emit('error', error);
-      return this.client.emit('handlerError', error, this.createContext({ message, command, args }));
+      return this.client.emit('dispatchError', error, this.createContext({ message, command, args }));
     }
 
     if (!response) {
@@ -108,7 +106,6 @@ export class Dispatcher {
 
       return this;
     } catch (error) {
-      this.client.emit('error', error);
       return this.client.emit(
         'dispatchError',
         error,
