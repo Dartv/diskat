@@ -154,3 +154,5 @@ export interface DispatcherOptions {
 export interface TypeResolverFunction <T extends unknown = unknown> {
   (value: string, message: Message): null | T | Promise<null | T>;
 }
+
+export type CommandConfigurator = (client: Client) => CommandOptions;

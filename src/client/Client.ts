@@ -19,8 +19,8 @@ export class Client extends DiscordClient {
 
     super(rest);
 
-    this.commands = new CommandRegistry();
     this.services = new ServiceContainer();
+    this.commands = new CommandRegistry(this);
     this.types = new TypeResolver(this);
     this.resolver = new ClientResolver(this);
     this.dispatcher = new Dispatcher({ client: this, prefix });

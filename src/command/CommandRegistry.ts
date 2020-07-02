@@ -1,6 +1,7 @@
 import { Collection } from 'discord.js';
 
-import type { Middleware, CommandOptions } from '../types';
+import type { Middleware, CommandConfigurator } from '../types';
+import type { Client } from '../client/Client';
 import { Command } from './Command';
 import { CommandError } from '../errors/CommandError';
 import { CommandGroup } from './CommandGroup';
@@ -9,15 +10,17 @@ export class CommandRegistry {
   commands: Collection<string, Command>;
   aliases: Collection<string, string>;
   groups: Collection<string, CommandGroup>;
+  client: Client;
 
-  constructor() {
+  constructor(client: Client) {
     this.commands = new Collection();
     this.aliases = new Collection();
     this.groups = new Collection();
+    this.client = client;
   }
 
-  add(...configurators: Array<(x: Record<string, unknown>) => CommandOptions>): this {
-    configurators.map(configurator => configurator({})).forEach((commandOptions) => {
+  add(...configurators: CommandConfigurator[]): this {
+    configurators.map(configurator => configurator(this.client)).forEach((commandOptions) => {
       this.addCommand(new Command(commandOptions));
     });
 
