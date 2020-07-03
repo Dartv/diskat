@@ -153,7 +153,7 @@ export interface DispatcherOptions {
   prefix: string | RegExp | PrefixFilterFunction;
 }
 
-export interface TypeResolverFunction <T extends unknown = unknown, U = string> {
+export interface TypeResolverFunction <T = unknown, U = unknown> {
   (value: U, message: Message): null | T | Promise<null | T>;
 }
 

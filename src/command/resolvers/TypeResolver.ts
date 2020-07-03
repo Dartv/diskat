@@ -103,7 +103,7 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
     }
   }
 
-  static compose(...types: (string | TypeResolverFunction<unknown, unknown>)[]): TypeResolverFunction {
+  static compose(...types: (string | TypeResolverFunction)[]): TypeResolverFunction {
     return async function (this: TypeResolver, value, message) {
       return types.reduce(
         async (acc, type) => acc.then((resolved) => this.resolve(type, resolved, message)),
@@ -112,8 +112,30 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
     }
   }
 
+  static catch(
+    onRejected: (error: Error, value: unknown, message: Message) => unknown,
+    type: string | TypeResolverFunction,
+  ): TypeResolverFunction {
+    return async function (this: TypeResolver, value, message) {
+      let resolved: unknown;
+      try {
+        resolved = await this.resolve(type, value, message);
+      } catch (err) {
+        resolved = await onRejected(err, value, message);
+
+        if (resolved === null) {
+          throw err;
+        }
+
+        return resolved;
+      }
+
+      return resolved;
+    }
+  }
+
   addDefaultTypes(): this {
-    const defaultTypes: Record<ParameterType, TypeResolverFunction> = {
+    const defaultTypes: Record<ParameterType, TypeResolverFunction<unknown, string>> = {
       [ParameterType.STRING]: (value) => TypeResolver.isString(value) ? value : null,
       [ParameterType.NUMBER]: (value) => TypeResolver.isNumber(value) ? TypeResolver.toNumber(value) : null,
       [ParameterType.INTEGER]: (value) => TypeResolver.isNumber(value) ? TypeResolver.toInteger(value) : null,
