@@ -113,7 +113,7 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
   }
 
   static catch(
-    onRejected: (error: Error, value: unknown, message: Message) => unknown,
+    onRejected: (value: unknown, message: Message) => unknown,
     type: string | TypeResolverFunction,
   ): TypeResolverFunction {
     return async function (this: TypeResolver, value, message) {
@@ -121,13 +121,11 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
       try {
         resolved = await this.resolve(type, value, message);
       } catch (err) {
-        resolved = await onRejected(err, value, message);
+        resolved = await onRejected(value, message);
 
         if (resolved === null) {
           throw err;
         }
-
-        return resolved;
       }
 
       return resolved;
