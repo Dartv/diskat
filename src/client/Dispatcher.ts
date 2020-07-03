@@ -58,59 +58,9 @@ export class Dispatcher {
       return this.client.emit('parseCommandError', error, message);
     }
 
-    const command = this.client.commands.get(parsedCommand.identifier);
+    await this.dispatchCommand(parsedCommand.identifier, parsedCommand.rawArgs, message);
 
-    if (!command) {
-      return this.client.emit('unknownCommand', parsedCommand.identifier, message);
-    }
-
-    let args: Record<string, unknown>;
-
-    try {
-      args = await new ArgumentParser(this.client).parse(command.parameters, parsedCommand.rawArgs, message);
-    } catch (error) {
-      return this.client.emit('parseArgumentsError', error, command.name, message);
-    }
-
-    let response: CommandResponse<unknown>
-
-    try {
-      const injectedServices = [...command.dependencies].reduce(
-        (acc, [serviceName, contextName]) => {
-          if (!this.client.services.has(serviceName)) {
-            throw new Error(`Attempting to inject a non-existent service: ${serviceName}`);
-          }
-
-          return {
-            ...acc,
-            [contextName]: this.client.services.get(serviceName),
-          };
-        },
-        {},
-      );
-
-      const context = this.createContext({ message, command, args });
-
-      response = await command.handle({ ...context, ...injectedServices, args });
-    } catch (error) {
-      return this.client.emit('dispatchError', error, this.createContext({ message, command, args }));
-    }
-
-    if (!response) {
-      return this.client.emit('middlewareFilter', this.createContext({ message, command, args }));
-    }
-
-    try {
-      await this.dispatchResponse(message.channel as TextChannel, response);
-
-      return this;
-    } catch (error) {
-      return this.client.emit(
-        'dispatchError',
-        error,
-        this.createContext({ message, command, args }),
-      );
-    }
+    return this;
   }
 
   shouldFilterEvent(message: Message, newMessage?: Message): boolean {
@@ -166,6 +116,64 @@ export class Dispatcher {
     };
   }
 
+  async dispatchCommand<T>(
+    commandName: string,
+    rawArgs: string,
+    message: Message,
+  ): Promise<boolean | this | Message | T> {
+    const command = this.client.commands.get(commandName);
+
+    if (!command) {
+      return this.client.emit('unknownCommand', commandName, message);
+    }
+
+    let args: Record<string, unknown>;
+
+    try {
+      args = await new ArgumentParser(this.client).parse(command.parameters, rawArgs, message);
+    } catch (error) {
+      return this.client.emit('parseArgumentsError', error, command.name, message);
+    }
+
+    let response: CommandResponse<T>;
+
+    try {
+      const injectedServices = [...command.dependencies].reduce(
+        (acc, [serviceName, contextName]) => {
+          if (!this.client.services.has(serviceName)) {
+            throw new Error(`Attempting to inject a non-existent service: ${serviceName}`);
+          }
+
+          return {
+            ...acc,
+            [contextName]: this.client.services.get(serviceName),
+          };
+        },
+        {},
+      );
+
+      const context = this.createContext({ message, command, args });
+
+      response = await command.handle({ ...context, ...injectedServices, args });
+    } catch (error) {
+      return this.client.emit('dispatchError', error, this.createContext({ message, command, args }));
+    }
+
+    if (!response) {
+      return this.client.emit('middlewareFilter', this.createContext({ message, command, args }));
+    }
+
+    try {
+      return await this.dispatchResponse(message.channel as TextChannel, response);
+    } catch (error) {
+      return this.client.emit(
+        'dispatchError',
+        error,
+        this.createContext({ message, command, args }),
+      );
+    }
+  }
+
   async dispatchResponse<T>(
     channel: TextChannel,
     response: CommandResponse<T>,
@@ -179,7 +187,7 @@ export class Dispatcher {
     }
 
     // for god knows why reason MessageEmbed loses its reference
-    // so this is a dirty hack around that lol
+    // so this is a dirty hack around that
     if (response?.constructor?.name === MessageEmbed.name) {
       return channel.send('', { embed: response as MessageEmbed });
     }

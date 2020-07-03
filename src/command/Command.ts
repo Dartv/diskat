@@ -13,7 +13,7 @@ import { composeMiddleware } from '../utils/middleware';
 import { ParameterParser } from './parsers/ParameterParser';
 
 export class Command {
-  handler: CommandHandler;
+  handler: CommandHandler<any, any>;
   originalHandler: CommandHandler;
   name: string;
   aliases: string[];
@@ -61,7 +61,7 @@ export class Command {
     return composeMiddleware(...middleware, handler);
   }
 
-  async handle(context: Context): Promise<CommandResponse<unknown>> {
+  async handle<T>(context: Context): Promise<CommandResponse<T>> {
     return this.handler(context);
   }
 
