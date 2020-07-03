@@ -92,6 +92,7 @@ export enum ParameterType {
   NEWS_CHANNEL = 'news channel',
   STORE_CHANNEL = 'store channel',
   ROLE = 'role',
+  COMMAND = 'command',
 }
 
 export interface ParameterDefinition<T = unknown> {
@@ -152,8 +153,8 @@ export interface DispatcherOptions {
   prefix: string | RegExp | PrefixFilterFunction;
 }
 
-export interface TypeResolverFunction <T extends unknown = unknown> {
-  (value: string, message: Message): null | T | Promise<null | T>;
+export interface TypeResolverFunction <T extends unknown = unknown, U = string> {
+  (value: U, message: Message): null | T | Promise<null | T>;
 }
 
 export type CommandConfigurator = (client: Client) => CommandOptions;

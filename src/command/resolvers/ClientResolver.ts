@@ -1,6 +1,8 @@
 import { User, Collection, GuildMember, Channel, Role } from 'discord.js';
 
 import type { Client } from '../../client/Client';
+import type { Command } from '../Command';
+import { CommandRegistry } from '../CommandRegistry';
 
 export class ClientResolver {
   client: Client;
@@ -51,6 +53,13 @@ export class ClientResolver {
     roles: Collection<string, Role> = new Collection(),
   ): Role | undefined {
     return roles.get(resolvable) || roles.find((role) => ClientResolver.checkRole(resolvable, role));
+  }
+
+  resolveCommand(
+    resolvable: string,
+    commands: CommandRegistry = new CommandRegistry(this.client),
+  ): Command | undefined {
+    return commands.get(resolvable);
   }
 
   static checkUser(resolvable: string, user: User): boolean {

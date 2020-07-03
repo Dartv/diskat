@@ -103,7 +103,7 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
     }
   }
 
-  static compose(...types: (string | TypeResolverFunction)[]): TypeResolverFunction {
+  static compose(...types: (string | TypeResolverFunction<unknown, unknown>)[]): TypeResolverFunction {
     return async function (this: TypeResolver, value, message) {
       return types.reduce(
         async (acc, type) => acc.then((resolved) => this.resolve(type, resolved, message)),
@@ -165,6 +165,7 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
         value,
         message.guild?.roles.cache,
       ) || null,
+      [ParameterType.COMMAND]: (value) => this.client.resolver.resolveCommand(value, this.client.commands) || null,
     };
 
     Object.entries(defaultTypes).forEach(([key, resolver]: [ParameterType, TypeResolverFunction]) => {
@@ -174,9 +175,9 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
     return this;
   }
 
-  async resolve<T>(
-    type: string | TypeResolverFunction<T>,
-    value: string,
+  async resolve<T, U>(
+    type: string | TypeResolverFunction<T, U>,
+    value: U,
     message: Message,
   ): Promise<T> {
     const resolver = typeof type === 'function' ? type.bind(this) : this.get(type);
