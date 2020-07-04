@@ -2,7 +2,7 @@ export * from './types';
 export { Client } from './client/Client';
 export { Dispatcher } from './client/Dispatcher';
 export { ServiceContainer } from './client/ServiceContainer';
-export { Command } from './command/Command';
+export { CommandObject } from './command/CommandObject';
 export { CommandGroup } from './command/CommandGroup';
 export { CommandRegistry } from './command/CommandRegistry';
 export { ArgumentParser } from './command/parsers/ArgumentParser';

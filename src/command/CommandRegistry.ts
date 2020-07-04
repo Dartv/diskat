@@ -2,12 +2,12 @@ import { Collection } from 'discord.js';
 
 import type { Middleware, CommandConfigurator, Context } from '../types';
 import type { Client } from '../client/Client';
-import { Command } from './Command';
+import { CommandObject } from './CommandObject';
 import { CommandError } from '../errors/CommandError';
 import { CommandGroup } from './CommandGroup';
 
 export class CommandRegistry<
-  T extends Command<Context, unknown> = Command<Context, unknown>,
+  T extends CommandObject<Context, unknown> = CommandObject<Context, unknown>,
   C extends Client = Client
 > extends Collection<string, T> {
   aliases: Collection<string, string> = new Collection();
@@ -21,7 +21,7 @@ export class CommandRegistry<
   }
 
   add(configurator: CommandConfigurator<Extract<T['handler'], Context>, unknown, C>): this {
-    this.addCommand(new Command(configurator(this.client)) as T);
+    this.addCommand(new CommandObject(configurator(this.client)) as T);
 
     return this;
   }

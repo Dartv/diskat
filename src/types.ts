@@ -2,7 +2,7 @@
 
 import Discord, { Message, MessageEmbed } from 'discord.js';
 
-import type { Command } from './command/Command';
+import type { CommandObject } from './command/CommandObject';
 import type { Client } from './client/Client';
 import type { MarkdownFormatter } from './utils/MarkdownFormatter';
 import type { Response } from './command/responses/Response';
@@ -47,15 +47,15 @@ export interface CommandConfig {
   middleware?: Middleware[];
 }
 
-export type CommandFunction<T extends Context, R> = CommandHandler<T, R> & {
+export type Command<T extends Context, R extends CommandResponse<unknown>> = CommandHandler<T, R> & {
   config: CommandConfig;
 };
 
 export type CommandConfigurator<
   T extends Context = Context,
-  R = unknown,
+  R extends CommandResponse<unknown> = CommandResponse<unknown>,
   C extends Client = Client
-> = (client: C) => CommandFunction<T, R>;
+> = (client: C) => Command<T, R>;
 
 export type Middleware<A extends Context = Context, B extends A = A, R = unknown> = (
   next: (context: B) => Promise<R>,
@@ -133,7 +133,7 @@ export interface PrefixFilterFunction {
 }
 
 export interface Context {
-  command: Command<Context, unknown>;
+  command: CommandObject<Context, unknown>;
   commands: Client['commands'];
   message: Message;
   client: Client;
@@ -145,7 +145,7 @@ export interface Context {
 
 export interface CreateContextOptions {
   message: Message;
-  command: Command<Context, unknown>;
+  command: CommandObject<Context, unknown>;
   args?: Record<string, unknown>;
 }
 

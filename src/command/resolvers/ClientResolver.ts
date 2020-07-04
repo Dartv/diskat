@@ -1,7 +1,7 @@
 import { User, Collection, GuildMember, Channel, Role } from 'discord.js';
 
 import type { Client } from '../../client/Client';
-import type { Command } from '../Command';
+import type { CommandObject } from '../CommandObject';
 import type { Context } from '../../types';
 import { CommandRegistry } from '../CommandRegistry';
 
@@ -59,7 +59,7 @@ export class ClientResolver<C extends Client> {
   resolveCommand<T extends Context, R>(
     resolvable: string,
     commands: CommandRegistry<any, C> = new CommandRegistry(this.client),
-  ): Command<T, R> | undefined {
+  ): CommandObject<T, R> | undefined {
     return commands.get(resolvable);
   }
 

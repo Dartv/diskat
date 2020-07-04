@@ -1,7 +1,7 @@
 import { Collection } from 'discord.js';
 
 import type {
-  CommandFunction,
+  Command,
   Middleware,
   CommandHandler,
   Context,
@@ -13,7 +13,7 @@ import { composeMiddleware } from '../utils/middleware';
 import { ParameterParser } from './parsers/ParameterParser';
 import { CommandError } from '../errors/CommandError';
 
-export class Command<T extends Context, R> {
+export class CommandObject<T extends Context, R> {
   handler: CommandHandler<T, R>;
   originalHandler: CommandHandler<T, R>;
   name: string;
@@ -24,7 +24,7 @@ export class Command<T extends Context, R> {
   dependencies: Collection<string, string>;
   middleware: Middleware[];
 
-  constructor(handler: CommandFunction<T, R>) {
+  constructor(handler: Command<T, R>) {
     if (!handler.config) {
       throw new CommandError(`Could not create command. Did you forget to add "config"?`);
     }
@@ -59,7 +59,7 @@ export class Command<T extends Context, R> {
     return this.handler(context);
   }
 
-  linkGroup(commandGroup: CommandGroup<Command<T, R>>): this {
+  linkGroup(commandGroup: CommandGroup<CommandObject<T, R>>): this {
     commandGroup.on('middlewareUpdate', (layers) => {
       this.handler = composeMiddleware(...[...layers, ...this.middleware], this.originalHandler);
     });
