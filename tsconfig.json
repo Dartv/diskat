@@ -10,8 +10,6 @@
     "lib": ["ES6"],
     "rootDir": "src",
     "forceConsistentCasingInFileNames": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "esModuleInterop": true
   },
   "include": ["src"],
