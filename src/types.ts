@@ -156,12 +156,13 @@ export interface DispatcherOptions<C extends Client = Client> {
   prefix: Prefix;
 }
 
-export type TypeResolverFunction<T = unknown, U = unknown> = (
+export type TypeResolverFunction<T = unknown, U = unknown, C extends Client = Client> = (
   value: T,
   message: Message,
+  client: C,
 ) => null | U | Promise<null | U>;
 
-export type TypeResolvable<T, U> = string | TypeResolverFunction<T, U>;
+export type TypeResolvable<T, U, C extends Client> = string | TypeResolverFunction<T, U, C>;
 
 export interface ServiceInstance<T extends unknown = unknown> {
   aliases: string[];

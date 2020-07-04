@@ -54,7 +54,9 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
     return new Date(Date.parse(value));
   }
 
-  static oneOfType<C extends Client = Client>(types: (string | TypeResolverFunction)[]): TypeResolverFunction {
+  static oneOfType<C extends Client = Client>(
+    types: (string | TypeResolverFunction)[],
+  ): TypeResolverFunction<unknown, unknown, C> {
     return async function (this: TypeResolver<C>, value, message) {
       return types.reduce(async (accumP, type, i) => {
         const accum = await accumP;
@@ -77,9 +79,9 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
   }
 
   static oneOf<T, U, C extends Client = Client>(
-    type: string | TypeResolverFunction<T, U>,
+    type: string | TypeResolverFunction<T, U, C>,
     expected: U[],
-  ): TypeResolverFunction<T, U> {
+  ): TypeResolverFunction<T, U, C> {
     return async function (this: TypeResolver<C>, value, message) {
       const resolved = await this.resolve(type, value, message);
 
@@ -93,8 +95,8 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
 
   static validate<T, U, C extends Client = Client>(
     predicate: (this: TypeResolver<C>, resolved: U, value: string, message: Message) => boolean | Promise<boolean>,
-    type: string | TypeResolverFunction<T, U> = ParameterType.STRING,
-  ): TypeResolverFunction<T, U> {
+    type: string | TypeResolverFunction<T, U, C> = ParameterType.STRING,
+  ): TypeResolverFunction<T, U, C> {
     return async function (this: TypeResolver<C>, value, message) {
       const resolved = await this.resolve(type, value, message);
 
@@ -108,7 +110,7 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
 
   static compose<T, C extends Client = Client>(
     ...types: (string | TypeResolverFunction)[]
-  ): TypeResolverFunction<unknown, T> {
+  ): TypeResolverFunction<unknown, T, C> {
     return async function (this: TypeResolver<C>, value, message) {
       return types.reduce(
         async (acc: Promise<any>, type) => acc.then((resolved) => this.resolve(type, resolved, message)),
@@ -119,8 +121,8 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
 
   static catch<T, U, C extends Client = Client>(
     onRejected: (value: T, message: Message) => Promise<U | null>,
-    type: TypeResolvable<T, U>,
-  ): TypeResolverFunction<T, U> {
+    type: TypeResolvable<T, U, C>,
+  ): TypeResolverFunction<T, U, C> {
     return async function (this: TypeResolver<C>, value, message) {
       let resolved: U | null;
       try {
@@ -138,7 +140,7 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
   }
 
   addDefaultTypes(): this {
-    const defaultTypes: Record<ParameterType, TypeResolverFunction<string, unknown>> = {
+    const defaultTypes: Record<ParameterType, TypeResolverFunction<string, unknown, C>> = {
       [ParameterType.STRING]: (value) => TypeResolver.isString(value) ? value : null,
       [ParameterType.NUMBER]: (value) => TypeResolver.isNumber(value) ? TypeResolver.toNumber(value) : null,
       [ParameterType.INTEGER]: (value) => TypeResolver.isNumber(value) ? TypeResolver.toInteger(value) : null,
@@ -201,7 +203,7 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
   }
 
   async resolve<T, U>(
-    type: TypeResolvable<T, U>,
+    type: TypeResolvable<T, U, C>,
     value: T,
     message: Message,
   ): Promise<U> {
@@ -211,7 +213,7 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
       throw new TypeResolverError(`Type ${type} doesn't exist`);
     }
 
-    const resolvedValue = await resolver(value, message);
+    const resolvedValue = await resolver(value, message, this.client);
 
     if (resolvedValue === null) {
       throw new TypeResolverError(`Expected "${value}" to be of type "${type}"`);
