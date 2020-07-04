@@ -6,8 +6,8 @@ import type { ParsedParameter } from '../../types';
 import { ArgumentParserError } from '../../errors/ArgumentParserError';
 import { isNil } from '../../utils/common';
 
-export class ArgumentParser {
-  constructor(public client: Client) {}
+export class ArgumentParser<C extends Client> {
+  constructor(public client: C) {}
 
   async parse(
     rules: ParsedParameter[],

@@ -1,6 +1,7 @@
 import { Client as DiscordClient } from 'discord.js';
 
-import type { ClientOptions, ClientEvents } from '../types';
+import type { ClientOptions, ClientEvents, Context } from '../types';
+import type { Command } from '../command/Command';
 import { CommandRegistry } from '../command/CommandRegistry';
 import { ServiceContainer } from './ServiceContainer';
 import { Dispatcher } from './Dispatcher';
@@ -8,11 +9,11 @@ import { TypeResolver } from '../command/resolvers/TypeResolver';
 import { ClientResolver } from '../command/resolvers/ClientResolver';
 
 export class Client extends DiscordClient {
-  commands: CommandRegistry;
+  commands: CommandRegistry<Command<Context, unknown>, Client>;
   services: ServiceContainer;
   dispatcher: Dispatcher;
-  types: TypeResolver;
-  resolver: ClientResolver;
+  types: TypeResolver<Client>;
+  resolver: ClientResolver<Client>;
 
   constructor(options: ClientOptions) {
     const { prefix, ...rest } = options;

@@ -12,9 +12,9 @@ import type { CommandGroup } from './CommandGroup';
 import { composeMiddleware } from '../utils/middleware';
 import { ParameterParser } from './parsers/ParameterParser';
 
-export class Command {
-  handler: CommandHandler<any, any>;
-  originalHandler: CommandHandler;
+export class Command<T extends Context, R> {
+  handler: CommandHandler<T, R>;
+  originalHandler: CommandHandler<T, R>;
   name: string;
   aliases: string[];
   parameters: ParsedParameter[];
@@ -22,9 +22,8 @@ export class Command {
   description: string;
   dependencies: Collection<string, string>;
   middleware: Middleware[];
-  meta: Record<string, unknown>;
 
-  constructor(options: CommandOptions) {
+  constructor(options: CommandOptions<T, R>) {
     const {
       triggers,
       handler,
@@ -33,7 +32,6 @@ export class Command {
       group = '',
       description = '',
       middleware = [],
-      meta = {},
     } = options;
     const [name, ...aliases] = triggers;
 
@@ -50,27 +48,16 @@ export class Command {
 
     this.originalHandler = handler;
     this.middleware = middleware;
-    this.meta = meta;
-    this.handler = Command.generateHandler(handler, middleware);
+    this.handler = composeMiddleware(...middleware, handler);
   }
 
-  static generateHandler(
-    handler: CommandHandler,
-    middleware: Middleware[],
-  ): (context: Context) => Promise<CommandResponse<unknown>> {
-    return composeMiddleware(...middleware, handler);
-  }
-
-  async handle<T>(context: Context): Promise<CommandResponse<T>> {
+  async handle<Context extends T = T, Result extends R = R>(context: Context): Promise<CommandResponse<Result>> {
     return this.handler(context);
   }
 
-  linkGroup(commandGroup: CommandGroup): this {
+  linkGroup(commandGroup: CommandGroup<Command<T, R>>): this {
     commandGroup.on('middlewareUpdate', (layers) => {
-      this.handler = Command.generateHandler(this.originalHandler, [
-        ...layers,
-        ...this.middleware,
-      ]);
+      this.handler = composeMiddleware(...[...layers, ...this.middleware], this.originalHandler);
     });
 
     return this;

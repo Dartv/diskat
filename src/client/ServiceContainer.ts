@@ -1,12 +1,9 @@
 import { Collection } from 'discord.js';
 
-interface ServiceInstance<T extends unknown = unknown> {
-  aliases: string[];
-  instance: T;
-}
+import type { ServiceInstance } from '../types';
 
 export class ServiceContainer extends Collection<string, ServiceInstance> {
-  aliases: Collection<string, string> = new Collection;
+  aliases: Collection<string, string> = new Collection();
 
   set<T>(identifier: string | string[], value: T): this {
     const [name, ...aliases] = Array.isArray(identifier) ? identifier : [identifier];

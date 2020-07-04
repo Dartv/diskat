@@ -16,24 +16,23 @@ import { CommandParser } from '../command/parsers/CommandParser';
 import { ArgumentParser } from '../command/parsers/ArgumentParser';
 import { MarkdownFormatter } from '../utils/MarkdownFormatter';
 
-export class Dispatcher {
-  client: Client;
+export class Dispatcher<C extends Client = Client> {
+  client: C;
   prefix: Prefix;
   prefixFilter: RegExp | PrefixFilterFunction;
 
-  constructor({ client, prefix }: DispatcherOptions) {
-    this.client = client;
-    this.prefix = prefix;
+  constructor(options: DispatcherOptions<C>) {
+    Object.assign(this, options);
 
     if (typeof this.prefix === 'string') {
       this.prefix = escapeRegExp(this.prefix.trim());
     }
 
-    client.once('ready', () => {
+    this.client.once('ready', () => {
       this.prefixFilter = this.createPrefixFilter(this.prefix);
     });
-    client.on('message', this.dispatch.bind(this));
-    client.on('messageUpdate', this.dispatch.bind(this));
+    this.client.on('message', this.dispatch.bind(this));
+    this.client.on('messageUpdate', this.dispatch.bind(this));
   }
 
   async dispatch(prevMessage: Message, newMessage?: Message): Promise<boolean | this> {

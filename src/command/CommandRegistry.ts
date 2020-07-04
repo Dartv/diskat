@@ -1,33 +1,31 @@
 import { Collection } from 'discord.js';
 
-import type { Middleware, CommandConfigurator } from '../types';
+import type { Middleware, CommandConfigurator, Context, CommandOptions } from '../types';
 import type { Client } from '../client/Client';
 import { Command } from './Command';
 import { CommandError } from '../errors/CommandError';
 import { CommandGroup } from './CommandGroup';
 
-export class CommandRegistry {
-  commands: Collection<string, Command>;
-  aliases: Collection<string, string>;
-  groups: Collection<string, CommandGroup>;
-  client: Client;
+export class CommandRegistry<
+  T extends Command<Context, unknown> = Command<Context, unknown>,
+  C extends Client = Client
+> {
+  commands: Collection<string, T> = new Collection();
+  aliases: Collection<string, string> = new Collection();
+  groups: Collection<string, CommandGroup<T>> = new Collection();
+  client: C;
 
-  constructor(client: Client) {
-    this.commands = new Collection();
-    this.aliases = new Collection();
-    this.groups = new Collection();
+  constructor(client: C) {
     this.client = client;
   }
 
-  add(...configurators: CommandConfigurator[]): this {
-    configurators.map(configurator => configurator(this.client)).forEach((commandOptions) => {
-      this.addCommand(new Command(commandOptions));
-    });
+  add(configurator: CommandConfigurator<CommandOptions<Extract<T, Context>, unknown>, C>): this {
+    this.addCommand(new Command(configurator(this.client)) as T);
 
     return this;
   }
 
-  get(identifier: string): Command | undefined {
+  get(identifier: string): T | undefined {
     const name = this.getMainName(identifier);
 
     if (name) {
@@ -47,7 +45,7 @@ export class CommandRegistry {
     return this;
   }
 
-  addCommand(command: Command): this {
+  addCommand(command: T): this {
     if (this.commands.has(command.name)) {
       throw new CommandError(`Attempting to add duplicate command: "${command.name}"`);
     }

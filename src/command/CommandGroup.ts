@@ -2,11 +2,13 @@ import { EventEmitter } from 'events';
 import { Collection } from 'discord.js';
 
 import type { Command } from './Command';
-import type { Middleware, TypedEventEmitter, CommandGroupEvents } from '../types';
+import type { Middleware, TypedEventEmitter, CommandGroupEvents, Context } from '../types';
 
-export class CommandGroup extends (EventEmitter as new () => TypedEventEmitter<CommandGroupEvents>) {
+export class CommandGroup<
+  T extends Command<Context, unknown>
+> extends (EventEmitter as new () => TypedEventEmitter<CommandGroupEvents>) {
   name: string;
-  commands: Collection<string, Command>;
+  commands: Collection<string, T>;
   middleware: Middleware[];
 
   constructor(name: string) {
@@ -17,7 +19,7 @@ export class CommandGroup extends (EventEmitter as new () => TypedEventEmitter<C
     this.middleware = [];
   }
 
-  add(command: Command): this {
+  add(command: T): this {
     const { name } = command;
 
     this.commands.set(name, command);

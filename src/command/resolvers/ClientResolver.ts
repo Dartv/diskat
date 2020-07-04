@@ -2,12 +2,13 @@ import { User, Collection, GuildMember, Channel, Role } from 'discord.js';
 
 import type { Client } from '../../client/Client';
 import type { Command } from '../Command';
+import type { Context } from '../../types';
 import { CommandRegistry } from '../CommandRegistry';
 
-export class ClientResolver {
-  client: Client;
+export class ClientResolver<C extends Client> {
+  client: C;
 
-  constructor(client: Client) {
+  constructor(client: C) {
     this.client = client;
   }
 
@@ -55,10 +56,10 @@ export class ClientResolver {
     return roles.get(resolvable) || roles.find((role) => ClientResolver.checkRole(resolvable, role));
   }
 
-  resolveCommand(
+  resolveCommand<T extends Context, R>(
     resolvable: string,
-    commands: CommandRegistry = new CommandRegistry(this.client),
-  ): Command | undefined {
+    commands: CommandRegistry<any, C> = new CommandRegistry(this.client),
+  ): Command<T, R> | undefined {
     return commands.get(resolvable);
   }
 

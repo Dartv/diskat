@@ -2,15 +2,15 @@ import { Collection, Message } from 'discord.js';
 import { toNumber, toInteger } from 'lodash';
 import { URL } from 'url';
 
-import type { TypeResolverFunction } from '../../types';
+import type { TypeResolverFunction, TypeResolvable } from '../../types';
 import type { Client } from '../../client/Client';
 import { ParameterType } from '../../types';
 import { TypeResolverError } from '../../errors/TypeResolverError';
 
-export class TypeResolver extends Collection<string, TypeResolverFunction> {
-  client: Client;
+export class TypeResolver<C extends Client> extends Collection<string, TypeResolverFunction> {
+  client: C;
 
-  constructor(client: Client, entries?: ReadonlyArray<readonly [string, TypeResolverFunction]> | null) {
+  constructor(client: C, entries?: ReadonlyArray<readonly [string, TypeResolverFunction]> | null) {
     super(entries);
 
     this.client = client;
@@ -54,8 +54,8 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
     return new Date(Date.parse(value));
   }
 
-  static oneOfType(types: (string | TypeResolverFunction)[]): TypeResolverFunction {
-    return async function (this: TypeResolver, value, message) {
+  static oneOfType<C extends Client = Client>(types: (string | TypeResolverFunction)[]): TypeResolverFunction {
+    return async function (this: TypeResolver<C>, value, message) {
       return types.reduce(async (accumP, type, i) => {
         const accum = await accumP;
 
@@ -76,8 +76,11 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
     }
   }
 
-  static oneOf<T>(type: string | TypeResolverFunction<T>, expected: T[]): TypeResolverFunction<T> {
-    return async function (this: TypeResolver, value, message) {
+  static oneOf<T, U, C extends Client = Client>(
+    type: string | TypeResolverFunction<T, U>,
+    expected: U[],
+  ): TypeResolverFunction<T, U> {
+    return async function (this: TypeResolver<C>, value, message) {
       const resolved = await this.resolve(type, value, message);
 
       if (!expected.includes(resolved)) {
@@ -88,11 +91,11 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
     }
   }
 
-  static validate<T>(
-    predicate: (this: TypeResolver, resolved: T, value: string, message: Message) => boolean | Promise<boolean>,
-    type: string | TypeResolverFunction<T> = ParameterType.STRING,
-  ): TypeResolverFunction<T> {
-    return async function (this: TypeResolver, value, message) {
+  static validate<T, U, C extends Client = Client>(
+    predicate: (this: TypeResolver<C>, resolved: U, value: string, message: Message) => boolean | Promise<boolean>,
+    type: string | TypeResolverFunction<T, U> = ParameterType.STRING,
+  ): TypeResolverFunction<T, U> {
+    return async function (this: TypeResolver<C>, value, message) {
       const resolved = await this.resolve(type, value, message);
 
       if (!await predicate.call(this, resolved, value, message)) {
@@ -103,25 +106,27 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
     }
   }
 
-  static compose(...types: (string | TypeResolverFunction)[]): TypeResolverFunction {
-    return async function (this: TypeResolver, value, message) {
+  static compose<T, C extends Client = Client>(
+    ...types: (string | TypeResolverFunction)[]
+  ): TypeResolverFunction<unknown, T> {
+    return async function (this: TypeResolver<C>, value, message) {
       return types.reduce(
-        async (acc, type) => acc.then((resolved) => this.resolve(type, resolved, message)),
+        async (acc: Promise<any>, type) => acc.then((resolved) => this.resolve(type, resolved, message)),
         Promise.resolve(value),
       );
     }
   }
 
-  static catch(
-    onRejected: (value: unknown, message: Message) => unknown,
-    type: string | TypeResolverFunction,
-  ): TypeResolverFunction {
-    return async function (this: TypeResolver, value, message) {
-      let resolved: unknown;
+  static catch<T, U, C extends Client = Client>(
+    onRejected: (value: T, message: Message) => Promise<U | null>,
+    type: TypeResolvable<T, U>,
+  ): TypeResolverFunction<T, U> {
+    return async function (this: TypeResolver<C>, value, message) {
+      let resolved: U | null;
       try {
         resolved = await this.resolve(type, value, message);
       } catch (err) {
-        resolved = await onRejected(value, message);
+        resolved = await onRejected.call(this, value, message);
 
         if (resolved === null) {
           throw err;
@@ -133,7 +138,7 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
   }
 
   addDefaultTypes(): this {
-    const defaultTypes: Record<ParameterType, TypeResolverFunction<unknown, string>> = {
+    const defaultTypes: Record<ParameterType, TypeResolverFunction<string, unknown>> = {
       [ParameterType.STRING]: (value) => TypeResolver.isString(value) ? value : null,
       [ParameterType.NUMBER]: (value) => TypeResolver.isNumber(value) ? TypeResolver.toNumber(value) : null,
       [ParameterType.INTEGER]: (value) => TypeResolver.isNumber(value) ? TypeResolver.toInteger(value) : null,
@@ -188,7 +193,7 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
       [ParameterType.COMMAND]: (value) => this.client.resolver.resolveCommand(value, this.client.commands) || null,
     };
 
-    Object.entries(defaultTypes).forEach(([key, resolver]: [ParameterType, TypeResolverFunction]) => {
+    Object.entries(defaultTypes).forEach(([key, resolver]) => {
       this.set(key, resolver);
     });
 
@@ -196,10 +201,10 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
   }
 
   async resolve<T, U>(
-    type: string | TypeResolverFunction<T, U>,
-    value: U,
+    type: TypeResolvable<T, U>,
+    value: T,
     message: Message,
-  ): Promise<T> {
+  ): Promise<U> {
     const resolver = typeof type === 'function' ? type.bind(this) : this.get(type);
 
     if (!resolver) {
@@ -212,6 +217,6 @@ export class TypeResolver extends Collection<string, TypeResolverFunction> {
       throw new TypeResolverError(`Expected "${value}" to be of type "${type}"`);
     }
 
-    return resolvedValue as T;
+    return resolvedValue;
   }
 }

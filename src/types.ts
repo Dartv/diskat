@@ -36,27 +36,25 @@ export interface ClientOptions extends Discord.ClientOptions {
   prefix: string;
 }
 
-export interface CommandHandler<
-  T extends Context = Context,
-  U = CommandResponse<unknown>
-> {
-  (context: T): Promise<U>;
-}
+export type CommandHandler<T extends Context, R> = <Result = R>(context: T) => Promise<CommandResponse<Result>>;
 
-export interface CommandOptions {
-  handler: CommandHandler;
+export interface CommandOptions<
+  T extends Context,
+  R,
+> {
+  handler: CommandHandler<T, R>;
   triggers: string[];
   parameters?: ParameterDefinition[];
   group?: string;
   description?: string;
   dependencies?: string[];
   middleware?: Middleware[];
-  meta?: Record<string, unknown>;
 }
 
-export interface Middleware<A extends Context = Context, B extends Context = Context, R = unknown> {
-  (next: (context: B) => Promise<R>, context: A): Promise<R>;
-}
+export type Middleware<A extends Context = Context, B extends A = A, R = unknown> = (
+  next: (context: B) => Promise<R>,
+  context: A,
+) => Promise<R>;
 
 export interface CommandGroupEvents {
   middlewareUpdate: (middlewares: Middleware[]) => void;
@@ -103,7 +101,6 @@ export interface ParameterDefinition<T = unknown> {
   repeatable?: boolean;
   literal?: boolean;
   defaultValue?: T | ((message: Message) => T | Promise<T>);
-  meta?: Record<string, unknown>;
 }
 
 export type ParsedParameter<T = unknown> = Required<ParameterDefinition<T>>;
@@ -130,7 +127,7 @@ export interface PrefixFilterFunction {
 }
 
 export interface Context {
-  command: Command;
+  command: Command<Context, unknown>;
   commands: Client['commands'];
   message: Message;
   client: Client;
@@ -142,19 +139,30 @@ export interface Context {
 
 export interface CreateContextOptions {
   message: Message;
-  command: Command;
+  command: Command<Context, unknown>;
   args?: Record<string, unknown>;
 }
 
 export type Prefix = string | RegExp | PrefixFilterFunction;
 
-export interface DispatcherOptions {
-  client: Client;
-  prefix: string | RegExp | PrefixFilterFunction;
+export interface DispatcherOptions<C extends Client = Client> {
+  client: C;
+  prefix: Prefix;
 }
 
-export interface TypeResolverFunction <T = unknown, U = unknown> {
-  (value: U, message: Message): null | T | Promise<null | T>;
-}
+export type TypeResolverFunction<T = unknown, U = unknown> = (
+  value: T,
+  message: Message,
+) => null | U | Promise<null | U>;
 
-export type CommandConfigurator = (client: Client) => CommandOptions;
+export type TypeResolvable<T, U> = string | TypeResolverFunction<T, U>;
+
+export type CommandConfigurator<
+  T extends CommandOptions<Context, unknown> = CommandOptions<Context, unknown>,
+  C extends Client = Client
+> = (client: C) => T;
+
+export interface ServiceInstance<T extends unknown = unknown> {
+  aliases: string[];
+  instance: T;
+}
