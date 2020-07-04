@@ -47,13 +47,13 @@ export interface CommandConfig {
   middleware?: Middleware[];
 }
 
-export type Command<T extends Context, R extends CommandResponse<unknown>> = CommandHandler<T, R> & {
+export type Command<T extends Context, R> = CommandHandler<T, R> & {
   config: CommandConfig;
 };
 
 export type CommandConfigurator<
   T extends Context = Context,
-  R extends CommandResponse<unknown> = CommandResponse<unknown>,
+  R = unknown,
   C extends Client = Client
 > = (client: C) => Command<T, R>;
 
