@@ -94,7 +94,13 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
   }
 
   static validate<T, U, C extends Client = Client>(
-    predicate: (this: TypeResolver<C>, resolved: U, value: string, message: Message) => boolean | Promise<boolean>,
+    predicate: (
+      this: TypeResolver<C>,
+      resolved: U,
+      value: string,
+      message: Message,
+      client: C,
+    ) => boolean | Promise<boolean>,
     type: string | TypeResolverFunction<T, U, C> = ParameterType.STRING,
   ): TypeResolverFunction<T, U, C> {
     return async function (this: TypeResolver<C>, value, message) {
@@ -120,7 +126,7 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
   }
 
   static catch<T, U, C extends Client = Client>(
-    onRejected: (value: T, message: Message) => Promise<U | null>,
+    onRejected: (value: T, message: Message, client: C) => Promise<U | null>,
     type: TypeResolvable<T, U, C>,
   ): TypeResolverFunction<T, U, C> {
     return async function (this: TypeResolver<C>, value, message) {
@@ -128,7 +134,7 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
       try {
         resolved = await this.resolve(type, value, message);
       } catch (err) {
-        resolved = await onRejected.call(this, value, message);
+        resolved = await onRejected.call(this, value, message, this.client);
 
         if (resolved === null) {
           throw err;
