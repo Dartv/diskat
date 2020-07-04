@@ -1,7 +1,7 @@
 import { Collection } from 'discord.js';
 
 import type {
-  CommandOptions,
+  CommandFunction,
   Middleware,
   CommandHandler,
   Context,
@@ -11,6 +11,7 @@ import type {
 import type { CommandGroup } from './CommandGroup';
 import { composeMiddleware } from '../utils/middleware';
 import { ParameterParser } from './parsers/ParameterParser';
+import { CommandError } from '../errors/CommandError';
 
 export class Command<T extends Context, R> {
   handler: CommandHandler<T, R>;
@@ -23,16 +24,19 @@ export class Command<T extends Context, R> {
   dependencies: Collection<string, string>;
   middleware: Middleware[];
 
-  constructor(options: CommandOptions<T, R>) {
+  constructor(handler: CommandFunction<T, R>) {
+    if (!handler.config) {
+      throw new CommandError(`Could not create command. Did you forget to add "config"?`);
+    }
+
     const {
       triggers,
-      handler,
       parameters = [],
       dependencies = [],
       group = '',
       description = '',
       middleware = [],
-    } = options;
+    } = handler.config;
     const [name, ...aliases] = triggers;
 
     this.name = name;

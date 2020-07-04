@@ -38,11 +38,7 @@ export interface ClientOptions extends Discord.ClientOptions {
 
 export type CommandHandler<T extends Context, R> = <Result = R>(context: T) => Promise<CommandResponse<Result>>;
 
-export interface CommandOptions<
-  T extends Context,
-  R,
-> {
-  handler: CommandHandler<T, R>;
+export interface CommandConfig {
   triggers: string[];
   parameters?: ParameterDefinition[];
   group?: string;
@@ -50,6 +46,16 @@ export interface CommandOptions<
   dependencies?: string[];
   middleware?: Middleware[];
 }
+
+export type CommandFunction<T extends Context, R> = CommandHandler<T, R> & {
+  config: CommandConfig;
+};
+
+export type CommandConfigurator<
+  T extends Context = Context,
+  R = unknown,
+  C extends Client = Client
+> = (client: C) => CommandFunction<T, R>;
 
 export type Middleware<A extends Context = Context, B extends A = A, R = unknown> = (
   next: (context: B) => Promise<R>,
@@ -156,11 +162,6 @@ export type TypeResolverFunction<T = unknown, U = unknown> = (
 ) => null | U | Promise<null | U>;
 
 export type TypeResolvable<T, U> = string | TypeResolverFunction<T, U>;
-
-export type CommandConfigurator<
-  T extends CommandOptions<Context, unknown> = CommandOptions<Context, unknown>,
-  C extends Client = Client
-> = (client: C) => T;
 
 export interface ServiceInstance<T extends unknown = unknown> {
   aliases: string[];

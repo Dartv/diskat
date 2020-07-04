@@ -1,6 +1,6 @@
 import { Collection } from 'discord.js';
 
-import type { Middleware, CommandConfigurator, Context, CommandOptions } from '../types';
+import type { Middleware, CommandConfigurator, Context } from '../types';
 import type { Client } from '../client/Client';
 import { Command } from './Command';
 import { CommandError } from '../errors/CommandError';
@@ -20,7 +20,7 @@ export class CommandRegistry<
     this.client = client;
   }
 
-  add(configurator: CommandConfigurator<CommandOptions<Extract<T, Context>, unknown>, C>): this {
+  add(configurator: CommandConfigurator<Extract<T['handler'], Context>, unknown, C>): this {
     this.addCommand(new Command(configurator(this.client)) as T);
 
     return this;
