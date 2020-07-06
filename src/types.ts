@@ -47,7 +47,7 @@ export interface CommandConfig {
   middleware?: Middleware[];
 }
 
-export type Command<T extends Context, R> = CommandHandler<T, R> & {
+export type Command<T extends Context, R = unknown> = CommandHandler<T, R> & {
   config: CommandConfig;
 };
 
