@@ -148,6 +148,8 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
   addDefaultTypes(): this {
     const defaultTypes: Record<ParameterType, TypeResolverFunction<string, unknown, C>> = {
       [ParameterType.STRING]: (value) => TypeResolver.isString(value) ? value : null,
+      [ParameterType.STRING_LOWER]: (value) => TypeResolver.isString(value) ? value.toLowerCase() : null,
+      [ParameterType.STRING_UPPER]: (value) => TypeResolver.isString(value) ? value.toUpperCase() : null,
       [ParameterType.NUMBER]: (value) => TypeResolver.isNumber(value) ? TypeResolver.toNumber(value) : null,
       [ParameterType.INTEGER]: (value) => TypeResolver.isNumber(value) ? TypeResolver.toInteger(value) : null,
       [ParameterType.FLOAT]: (value) => TypeResolver.isNumber(value) ? TypeResolver.toFloat(value) : null,

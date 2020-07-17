@@ -85,6 +85,8 @@ export enum ParameterType {
   FLOAT = 'float',
   NUMBER = 'number',
   STRING = 'string',
+  STRING_LOWER = 'string lowercased',
+  STRING_UPPER = 'string uppercased',
   DATE = 'date',
   URL = 'url',
   USER = 'user',
