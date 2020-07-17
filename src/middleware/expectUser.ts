@@ -17,5 +17,5 @@ export const expectUser = <T extends Context>(
   const ids = new Set(identifiers);
   const { id, username, discriminator } = user;
 
-  return ids.has(id) || ids.has(`${username}#${discriminator}`) && next(context);
+  return (ids.has(id) || ids.has(`${username}#${discriminator}`)) && next(context);
 };
