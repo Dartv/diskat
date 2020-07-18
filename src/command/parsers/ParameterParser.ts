@@ -44,7 +44,7 @@ export class ParameterParser {
       type = ParameterType.STRING,
       repeatable = false,
       literal = false,
-      defaultValue = null,
+      defaultValue = undefined,
     } = parameter;
 
     return {
