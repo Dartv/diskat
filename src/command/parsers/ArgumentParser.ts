@@ -50,9 +50,14 @@ export class ArgumentParser<C extends Client> {
       }
 
       // get the arg or default value if no arg is given
-      parsed[rule.name] = isNil(arg)
+      try {
+        parsed[rule.name] = isNil(arg)
         ? await ArgumentParser.resolveDefaultValue(rule, message)
         : await this.client.types.resolve(rule.type, arg, message);
+      } catch (err) {
+        err.rule = rule;
+        throw err;
+      }
     }
 
     return parsed;

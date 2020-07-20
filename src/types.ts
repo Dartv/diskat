@@ -6,6 +6,8 @@ import type { CommandObject } from './command/CommandObject';
 import type { Client } from './client/Client';
 import type { MarkdownFormatter } from './utils/MarkdownFormatter';
 import type { Response } from './command/responses/Response';
+import { ArgumentParserError } from './errors/ArgumentParserError';
+import { CommandParserError } from './errors/CommandParserError';
 
 export type Arguments<T> = [T] extends [(...args: infer U) => unknown]
   ? U
@@ -125,8 +127,8 @@ export interface ClientEvents extends Discord.ClientEvents {
   prefixFilter: [Message],
   middlewareFilter: [Context],
   unknownCommand: [string, Message],
-  parseCommandError: [Error, Message],
-  parseArgumentsError: [Error, string, Message],
+  parseCommandError: [CommandParserError, Message],
+  parseArgumentsError: [ArgumentParserError, string, Message],
   dispatchError: [Error, Context],
 }
 
