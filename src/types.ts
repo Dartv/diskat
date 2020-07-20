@@ -59,7 +59,7 @@ export type CommandConfigurator<
   C extends Client = Client
 > = (client: C) => Command<T, R>;
 
-export type Middleware<A extends Context = Context, B extends A = A, R = unknown> = (
+export type Middleware<A extends Context = Context, B extends Context = Context, R = unknown> = (
   next: (context: B) => Promise<R>,
   context: A,
 ) => Promise<R>;
