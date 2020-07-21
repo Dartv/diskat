@@ -15,7 +15,7 @@ export interface Config {
   // amount of time cooldown lasts, in seconds
   window: number;
   // callback to trigger when cooldown is activated
-  onCooldown?: (next: (context: unknown) => unknown) => unknown;
+  onCooldown?: (cooldown: Cooldown, next: (context: unknown) => unknown) => unknown;
 }
 
 export const withCooldown = <T extends Context>(
@@ -38,7 +38,7 @@ export const withCooldown = <T extends Context>(
     const cooldown = cooldowns.get(userId);
 
     if (cooldown && cooldown.usages >= max) {
-      return onCooldown(next);
+      return onCooldown(cooldown, next);
     }
 
     const response = await next(context);
