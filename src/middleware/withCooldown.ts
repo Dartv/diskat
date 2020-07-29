@@ -18,9 +18,13 @@ export interface Config {
   onCooldown?: (cooldown: Cooldown, next: (context: unknown) => unknown) => unknown;
 }
 
+export interface WithCooldownContext extends Context {
+  cooldowns: Collection<string, Cooldown>;
+}
+
 export const withCooldown = <T extends Context>(
   config: (context: T) => Promise<Config>,
-): Middleware<T> => {
+): Middleware<T, T & WithCooldownContext> => {
   const cooldowns: Collection<string, Cooldown> = new Collection();
 
   return async (next, context) => {
@@ -32,7 +36,7 @@ export const withCooldown = <T extends Context>(
     } = await config(context);
 
     if (!userId) {
-      return next(context);
+      return next({ ...context, cooldowns });
     }
 
     const cooldown = cooldowns.get(userId);
@@ -53,6 +57,6 @@ export const withCooldown = <T extends Context>(
       cooldown.usages++;
     }
 
-    return next(context);
+    return next({ ...context, cooldowns });
   };
 };
