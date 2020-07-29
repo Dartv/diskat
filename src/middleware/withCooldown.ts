@@ -41,8 +41,6 @@ export const withCooldown = <T extends Context>(
       return onCooldown(cooldown, next);
     }
 
-    const response = await next(context);
-
     if (!cooldown) {
       cooldowns.set(userId, {
         startAt: Date.now(),
@@ -55,6 +53,6 @@ export const withCooldown = <T extends Context>(
       cooldown.usages++;
     }
 
-    return response;
+    return next(context);
   };
 };
