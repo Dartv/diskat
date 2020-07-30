@@ -34,6 +34,14 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
     return !Number.isNaN(Date.parse(value));
   }
 
+  static isURL(value: string): boolean {
+    try {
+      return !!new URL(value);
+    } catch (err) {
+      return false;
+    }
+  }
+
   static toNumber(value: string): number {
     return toNumber(value);
   }
@@ -52,6 +60,10 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
 
   static toDate(value: string): Date {
     return new Date(Date.parse(value));
+  }
+
+  static toURL(value: string): URL {
+    return new URL(value);
   }
 
   static oneOfType<C extends Client = Client>(
@@ -155,13 +167,7 @@ export class TypeResolver<C extends Client> extends Collection<string, TypeResol
       [ParameterType.FLOAT]: (value) => TypeResolver.isNumber(value) ? TypeResolver.toFloat(value) : null,
       [ParameterType.BOOLEAN]: (value) => TypeResolver.isBoolean(value) ? TypeResolver.toBoolean(value) : null,
       [ParameterType.DATE]: (value) => TypeResolver.isDate(value) ? TypeResolver.toDate(value) : null,
-      [ParameterType.URL]: (value) => {
-        try {
-          return new URL(value);
-        } catch (err) {
-          return null;
-        }
-      },
+      [ParameterType.URL]: (value) => TypeResolver.isURL(value) ? TypeResolver.toURL(value) : null,
       [ParameterType.USER]: (value) => this.client.resolver.resolveUser(value) || null,
       [ParameterType.MEMBER]: (value, message) => this.client.resolver.resolveMember(
         value,
