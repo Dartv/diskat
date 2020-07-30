@@ -37,17 +37,17 @@ export const combineMiddleware = <A, B, T extends Function[], R extends unknown>
   context: A,
 ): R => composeMiddleware<R>(...middleware, next)(context);
 
-export const branch = <A, M1 extends Function, M2 extends Function, R extends unknown>(
-  predicate: (context: A) => boolean | Promise<boolean>,
+export const branch = <C, R extends unknown, M1 extends Function, M2 extends Function>(
+  predicate: (context: C) => boolean | Promise<boolean>,
   middleware1: M1,
-  middleware2: M2,
-) => async (next: (context: A) => R, context: A): Promise<R> => {
+  middleware2?: M2,
+) => async (next: (context: C) => R, context: C): Promise<R> => {
   if (await predicate(context)) {
-    return middleware1(context);
+    return middleware1(next, context);
   }
 
   if (middleware2) {
-    return middleware2(context);
+    return middleware2(next, context);
   }
 
   return next(context);
