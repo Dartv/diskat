@@ -99,7 +99,7 @@ export class Dispatcher<C extends Client = Client> {
     throw new TypeError('Prefix should be a string or function');
   }
 
-  createContext({ message, command, args = {} }: CreateContextOptions): Context {
+  createContext({ message, command, args = {} }: CreateContextOptions): Context<C> {
     return {
       command,
       message,

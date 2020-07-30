@@ -136,13 +136,13 @@ export interface PrefixFilterFunction {
   (message: Message): Promise<boolean | RegExp>;
 }
 
-export interface Context {
+export interface Context<C extends Client = Client> {
   command: CommandObject<Context, unknown>;
-  commands: Client['commands'];
+  commands: C['commands'];
   message: Message;
-  client: Client;
+  client: C;
   formatter: typeof MarkdownFormatter;
-  services: Client['services'];
+  services: C['services'];
   dispatch: <T>(response: CommandResponse<T>) => Promise<Message | T>;
   args: Record<string, unknown>;
 }
