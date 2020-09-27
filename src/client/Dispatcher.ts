@@ -41,9 +41,7 @@ export class Dispatcher<C extends Client = Client> {
     }
 
     const message = newMessage || prevMessage;
-    const prefix = typeof this.prefixFilter === 'function'
-      ? await this.prefixFilter(message)
-      : this.prefixFilter;
+    const prefix = await this.resolvePrefix(message);
 
     if (!prefix || !(prefix instanceof RegExp) || this.shouldFilterPrefix(prefix, message)) {
       return this.client.emit('prefixFilter', message);
@@ -99,11 +97,18 @@ export class Dispatcher<C extends Client = Client> {
     throw new TypeError('Prefix should be a string or function');
   }
 
-  createContext({ message, command, args = {} }: CreateContextOptions): Context<C> {
+  async resolvePrefix(message: Message): Promise<boolean | RegExp> {
+    return typeof this.prefixFilter === 'function'
+      ? await this.prefixFilter(message)
+      : this.prefixFilter;
+  }
+
+  createContext({ message, command, args = {}, rawArgs = '' }: CreateContextOptions): Context<C> {
     return {
       command,
       message,
       args,
+      rawArgs,
       client: this.client,
       commands: this.client.commands,
       dispatch: <T>(response: CommandResponse<T>) => this.dispatchResponse(
@@ -126,12 +131,14 @@ export class Dispatcher<C extends Client = Client> {
       return this.client.emit('unknownCommand', commandName, message);
     }
 
-    let args: Record<string, unknown>;
+    let args: Record<string, unknown> = {};
 
-    try {
-      args = await new ArgumentParser(this.client).parse(command.parameters, rawArgs, message);
-    } catch (error) {
-      return this.client.emit('parseArgumentsError', error, command.name, message);
+    if (command.parameters.length) {
+      try {
+        args = await new ArgumentParser(this.client).parse(command.parameters, rawArgs, message);
+      } catch (error) {
+        return this.client.emit('parseArgumentsError', error, command.name, message);
+      }
     }
 
     let response: CommandResponse<T>;
@@ -151,9 +158,9 @@ export class Dispatcher<C extends Client = Client> {
         {},
       );
 
-      const context = this.createContext({ message, command, args });
+      const context = this.createContext({ message, command, args, rawArgs });
 
-      response = await command.handle({ ...context, ...injectedServices, args });
+      response = await command.handle({ ...context, ...injectedServices });
     } catch (error) {
       return this.client.emit('dispatchError', error, this.createContext({ message, command, args }));
     }
