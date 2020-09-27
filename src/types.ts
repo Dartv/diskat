@@ -145,12 +145,14 @@ export interface Context<C extends Client = Client> {
   services: C['services'];
   dispatch: <T>(response: CommandResponse<T>) => Promise<Message | T>;
   args: Record<string, unknown>;
+  rawArgs: string;
 }
 
 export interface CreateContextOptions {
   message: Message;
   command: CommandObject<Context, unknown>;
   args?: Record<string, unknown>;
+  rawArgs?: string;
 }
 
 export type Prefix = string | RegExp | PrefixFilterFunction;
@@ -160,13 +162,20 @@ export interface DispatcherOptions<C extends Client = Client> {
   prefix: Prefix;
 }
 
-export type TypeResolverFunction<T = unknown, U = unknown, C extends Client = Client> = (
-  value: T,
-  message: Message,
-  client: C,
+export interface TypeResolverContext<T = unknown, C extends Client = Client> {
+  message: Message;
+  value: T;
+  client: C;
+}
+
+export type TypeResolverFunction<C extends TypeResolverContext = TypeResolverContext, U = unknown> = (
+  context: C,
 ) => null | U | Promise<null | U>;
 
-export type TypeResolvable<T, U, C extends Client> = string | TypeResolverFunction<T, U, C>;
+export type TypeResolvable<
+  C extends TypeResolverContext = TypeResolverContext,
+  U = unknown
+> = string | TypeResolverFunction<C, U>;
 
 export interface ServiceInstance<T extends unknown = unknown> {
   aliases: string[];
