@@ -144,13 +144,13 @@ export interface Context<C extends Client = Client> {
   formatter: typeof MarkdownFormatter;
   services: C['services'];
   dispatch: <T>(response: CommandResponse<T>) => Promise<Message | T>;
-  args: Record<string, unknown>;
+  args: any;
 }
 
 export interface CreateContextOptions {
   message: Message;
   command: CommandObject<Context, unknown>;
-  args?: Record<string, unknown>;
+  args?: any;
 }
 
 export type Prefix = string | RegExp | PrefixFilterFunction;
