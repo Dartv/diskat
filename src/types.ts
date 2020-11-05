@@ -166,6 +166,7 @@ export interface TypeResolverContext<T = unknown, C extends Client = Client> {
   message: Message;
   value: T;
   client: C;
+  args: Record<string, unknown>;
 }
 
 export type TypeResolverFunction<C extends TypeResolverContext = TypeResolverContext, U = unknown> = (
