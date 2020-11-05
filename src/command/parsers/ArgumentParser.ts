@@ -34,9 +34,16 @@ export class ArgumentParser<C extends Client> {
           const rest: unknown[] = [];
 
           for (let j = i; j < delimited.length; ++j) {
-            rest.push(
-              await this.client.types.resolve(rule.type, { value: delimited[j], message, client: this.client })
+            const resolved = await this.client.types.resolve(
+              rule.type,
+              {
+                value: delimited[j],
+                message,
+                client: this.client,
+                args: parsed,
+              },
             );
+            rest.push(resolved);
           }
 
           return {
@@ -54,8 +61,16 @@ export class ArgumentParser<C extends Client> {
       // get the arg or default value if no arg is given
       try {
         parsed[rule.name] = isNil(arg)
-        ? await ArgumentParser.resolveDefaultValue(rule, message)
-        : await this.client.types.resolve(rule.type, { value: arg, client: this.client, message });
+          ? await ArgumentParser.resolveDefaultValue(rule, message)
+          : await this.client.types.resolve(
+            rule.type,
+            {
+              message,
+              value: arg,
+              client: this.client,
+              args: parsed,
+            },
+          );
       } catch (err) {
         err.rule = rule;
         throw err;
